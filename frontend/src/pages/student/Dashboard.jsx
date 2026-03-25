@@ -37,15 +37,15 @@ export default function StudentDashboard() {
     fetch();
   }, []);
 
-  // Build semester-wise chart data
-  const semesterData = marks.reduce((acc, m) => {
-    const key = `Sem ${m.semester}`;
-    if (!acc[key]) acc[key] = { sem: key, total: 0, count: 0 };
+  // Build year-wise chart data
+  const yearData = marks.reduce((acc, m) => {
+    const key = m.year;
+    if (!acc[key]) acc[key] = { year: key, total: 0, count: 0 };
     acc[key].total += m.totalMarks || 0;
     acc[key].count += 1;
     return acc;
   }, {});
-  const chartData = Object.values(semesterData).map(s => ({ ...s, avg: Math.round(s.total / s.count) }));
+  const chartData = Object.values(yearData).map(s => ({ ...s, avg: Math.round(s.total / s.count) }));
 
   // Skills radar
   const skills = user?.studentData?.skills || [];
@@ -72,7 +72,7 @@ export default function StudentDashboard() {
       <div className="mb-8 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Welcome back, {user?.name?.split(' ')[0]}! 👋</h1>
-          <p className="text-slate-400 mt-1">{user?.studentData?.department} · Semester {user?.studentData?.semester} · {user?.studentData?.batch}</p>
+          <p className="text-slate-400 mt-1">{user?.studentData?.department} · {user?.studentData?.year} · {user?.studentData?.batch}</p>
         </div>
         <div className="text-right">
           <span className="font-mono text-blue-400 text-lg font-bold">{user?.studentId}</span>
@@ -111,7 +111,7 @@ export default function StudentDashboard() {
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="sem" stroke="#64748b" tick={{ fontSize: 11 }} />
+                <XAxis dataKey="year" stroke="#64748b" tick={{ fontSize: 11 }} />
                 <YAxis stroke="#64748b" tick={{ fontSize: 11 }} domain={[0, 150]} />
                 <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8 }} />
                 <Bar dataKey="avg" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Avg Marks" />
@@ -155,12 +155,12 @@ export default function StudentDashboard() {
           </div>
           <div className="table-container">
             <table className="table">
-              <thead><tr><th>Subject</th><th>Semester</th><th>Internal</th><th>External</th><th>Total</th><th>Grade</th></tr></thead>
+              <thead><tr><th>Subject</th><th>Year</th><th>Internal</th><th>External</th><th>Total</th><th>Grade</th></tr></thead>
               <tbody>
                 {marks.slice(0, 5).map(m => (
                   <tr key={m._id}>
                     <td className="font-medium text-slate-200">{m.subject}</td>
-                    <td><span className="badge-blue">Sem {m.semester}</span></td>
+                    <td><span className="badge-blue">{m.year}</span></td>
                     <td className="text-slate-300">{m.internalMarks}</td>
                     <td className="text-slate-300">{m.externalMarks}</td>
                     <td className="font-bold text-white">{m.totalMarks}</td>

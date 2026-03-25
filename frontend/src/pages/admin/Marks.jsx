@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { Plus, X, Trash2, Edit2, BookOpen } from 'lucide-react';
 
 function MarksModal({ mark, students, onClose, onSave }) {
-  const [form, setForm] = useState(mark || { student: '', subject: '', subjectCode: '', semester: 1, internalMarks: 0, externalMarks: 0, examType: 'internal', academicYear: '2024-25' });
+  const [form, setForm] = useState(mark || { student: '', subject: '', subjectCode: '', year: 'First Year', internalMarks: 0, externalMarks: 0, examType: 'internal', academicYear: '2024-25' });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -52,9 +52,9 @@ function MarksModal({ mark, students, onClose, onSave }) {
               <input className="input" value={form.subjectCode} onChange={e => setForm({ ...form, subjectCode: e.target.value })} placeholder="CS301" />
             </div>
             <div>
-              <label className="label">Semester</label>
-              <select className="input" value={form.semester} onChange={e => setForm({ ...form, semester: Number(e.target.value) })}>
-                {[1,2,3,4,5,6,7,8].map(n => <option key={n}>{n}</option>)}
+              <label className="label">Year</label>
+              <select className="input" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}>
+                {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -159,7 +159,7 @@ export default function Marks() {
               <th>Student</th>
               <th>Subject</th>
               <th>Code</th>
-              <th>Semester</th>
+              <th>Year</th>
               <th>Internal</th>
               <th>External</th>
               <th>Total</th>
@@ -181,7 +181,7 @@ export default function Marks() {
                 </td>
                 <td className="text-slate-300">{m.subject}</td>
                 <td className="text-slate-400 font-mono text-xs">{m.subjectCode}</td>
-                <td><span className="badge-blue">Sem {m.semester}</span></td>
+                <td><span className="badge-blue">{m.year}</span></td>
                 <td className="text-slate-300">{m.internalMarks}</td>
                 <td className="text-slate-300">{m.externalMarks}</td>
                 <td className="font-semibold text-white">{m.totalMarks}</td>

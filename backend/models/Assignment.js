@@ -20,7 +20,7 @@ const assignmentSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   department: { type: String },
   batch: { type: String },
-  semester: { type: Number },
+  year: { type: String },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Assignment', assignmentSchema);

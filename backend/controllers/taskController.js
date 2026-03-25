@@ -10,13 +10,13 @@ const fs = require('fs');
  * ALLOCATION LOGIC:
  *
  * Assignments / Presentations / Projects:
- *   - Filter students by department + semester (+ batch if provided)
+ *   - Filter students by department + year (+ batch if provided)
  *   - For each topic, pick `studentsPerTopic` students (default = Math.ceil(totalStudents / topics))
  *   - No student gets the same topic twice
  *   - Shuffle before allocation for fairness
  *
  * Lab Tasks:
- *   - Filter students by department (+ semester/batch if provided)
+ *   - Filter students by department (+ year/batch if provided)
  *   - Every student in that department gets EVERY lab task
  */
 
@@ -73,10 +73,10 @@ function parseTopicsFile(filePath) {
 
 const getAssignments = async (req, res) => {
   try {
-    const { department, semester, batch, status } = req.query;
+    const { department, year, batch, status } = req.query;
     const filter = {};
     if (department) filter.department = department;
-    if (semester) filter.semester = Number(semester);
+    if (year) filter.year = year;
     if (batch) filter.batch = batch;
     if (status) filter.status = status;
     const assignments = await Assignment.find(filter)
@@ -99,11 +99,11 @@ const createAndAllocateAssignments = async (req, res) => {
     }
     if (!topics.length) return res.status(400).json({ message: 'No topics provided' });
 
-    const { subject, dueDate, batch, semester, department, studentsPerTopic, maxMarks } = req.body;
+    const { subject, dueDate, batch, year, department, studentsPerTopic, maxMarks } = req.body;
     if (!department) return res.status(400).json({ message: 'Department is required' });
 
     const filter = { department, isActive: true };
-    if (semester) filter.semester = Number(semester);
+    if (year) filter.year = year;
     if (batch) filter.batch = batch;
 
     const students = await Student.find(filter);
@@ -120,7 +120,7 @@ const createAndAllocateAssignments = async (req, res) => {
       title: topic.title,
       description: topic.description || '',
       subject, dueDate, batch, department,
-      semester: semester ? Number(semester) : undefined,
+      year: year || undefined,
       allocatedTo: student._id,
       maxMarks: maxMarks ? Number(maxMarks) : 100,
       createdBy: req.user._id,
@@ -183,10 +183,10 @@ const deleteAssignment = async (req, res) => {
 
 const getPresentations = async (req, res) => {
   try {
-    const { department, semester, batch, status } = req.query;
+    const { department, year, batch, status } = req.query;
     const filter = {};
     if (department) filter.department = department;
-    if (semester) filter.semester = Number(semester);
+    if (year) filter.year = year;
     if (batch) filter.batch = batch;
     if (status) filter.status = status;
     const presentations = await Presentation.find(filter)
@@ -208,11 +208,11 @@ const createAndAllocatePresentations = async (req, res) => {
     }
     if (!topics.length) return res.status(400).json({ message: 'No topics provided' });
 
-    const { subject, dueDate, batch, semester, department, studentsPerTopic, maxMarks } = req.body;
+    const { subject, dueDate, batch, year, department, studentsPerTopic, maxMarks } = req.body;
     if (!department) return res.status(400).json({ message: 'Department is required' });
 
     const filter = { department, isActive: true };
-    if (semester) filter.semester = Number(semester);
+    if (year) filter.year = year;
     if (batch) filter.batch = batch;
 
     const students = await Student.find(filter);
@@ -228,7 +228,7 @@ const createAndAllocatePresentations = async (req, res) => {
       title: topic.title,
       description: topic.description || '',
       subject, dueDate, batch, department,
-      semester: semester ? Number(semester) : undefined,
+      year: year || undefined,
       allocatedTo: student._id,
       maxMarks: maxMarks ? Number(maxMarks) : 100,
       createdBy: req.user._id,
@@ -280,10 +280,10 @@ const getMyPresentations = async (req, res) => {
 
 const getLabTasks = async (req, res) => {
   try {
-    const { department, semester, batch } = req.query;
+    const { department, year, batch } = req.query;
     const filter = {};
     if (department) filter.department = department;
-    if (semester) filter.semester = Number(semester);
+    if (year) filter.year = year;
     if (batch) filter.batch = batch;
     const tasks = await LabTask.find(filter)
       .populate('allocatedTo', 'name studentId rollNumber department')
@@ -305,12 +305,12 @@ const createAndAllocateLabTasks = async (req, res) => {
     }
     if (!taskList.length) return res.status(400).json({ message: 'No lab tasks provided' });
 
-    const { subject, dueDate, batch, semester, department, maxMarks } = req.body;
+    const { subject, dueDate, batch, year, department, maxMarks } = req.body;
     if (!department) return res.status(400).json({ message: 'Department is required' });
 
-    // Lab tasks → ALL students in the department (optionally filtered by semester/batch)
+    // Lab tasks → ALL students in the department (optionally filtered by year/batch)
     const filter = { department, isActive: true };
-    if (semester) filter.semester = Number(semester);
+    if (year) filter.year = year;
     if (batch) filter.batch = batch;
 
     const students = await Student.find(filter);
@@ -324,7 +324,7 @@ const createAndAllocateLabTasks = async (req, res) => {
           description: taskData.description || '',
           labNumber: taskData.labNumber || (idx + 1),
           subject, dueDate, batch, department,
-          semester: semester ? Number(semester) : undefined,
+          year: year || undefined,
           allocatedTo: student._id,
           maxMarks: maxMarks ? Number(maxMarks) : 100,
           createdBy: req.user._id,
@@ -383,10 +383,10 @@ const getMyLabTasks = async (req, res) => {
 
 const getProjects = async (req, res) => {
   try {
-    const { department, semester, batch, status } = req.query;
+    const { department, year, batch, status } = req.query;
     const filter = {};
     if (department) filter.department = department;
-    if (semester) filter.semester = Number(semester);
+    if (year) filter.year = year;
     if (batch) filter.batch = batch;
     if (status) filter.status = status;
     const projects = await Project.find(filter)
@@ -408,11 +408,11 @@ const createAndAllocateProjects = async (req, res) => {
     }
     if (!topics.length) return res.status(400).json({ message: 'No project topics provided' });
 
-    const { subject, dueDate, batch, semester, department, studentsPerTopic, maxMarks } = req.body;
+    const { subject, dueDate, batch, year, department, studentsPerTopic, maxMarks } = req.body;
     if (!department) return res.status(400).json({ message: 'Department is required' });
 
     const filter = { department, isActive: true };
-    if (semester) filter.semester = Number(semester);
+    if (year) filter.year = year;
     if (batch) filter.batch = batch;
 
     const students = await Student.find(filter);
@@ -429,7 +429,7 @@ const createAndAllocateProjects = async (req, res) => {
       description: topic.description || '',
       subject: subject || '',
       dueDate, batch, department,
-      semester: semester ? Number(semester) : undefined,
+      year: year || undefined,
       allocatedTo: student._id,
       maxMarks: maxMarks ? Number(maxMarks) : 100,
       status: 'allocated',

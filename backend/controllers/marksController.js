@@ -4,10 +4,10 @@ const Student = require('../models/Student');
 // Get all marks (admin)
 const getAllMarks = async (req, res) => {
   try {
-    const { student, semester, subject, academicYear } = req.query;
+    const { student, year, subject, academicYear } = req.query;
     const filter = {};
     if (student) filter.student = student;
-    if (semester) filter.semester = Number(semester);
+    if (year) filter.year = year;
     if (subject) filter.subject = { $regex: subject, $options: 'i' };
     if (academicYear) filter.academicYear = academicYear;
     
@@ -24,7 +24,7 @@ const getMyMarks = async (req, res) => {
     const student = await Student.findOne({ userId: req.user._id });
     if (!student) return res.status(404).json({ message: 'Student not found' });
     
-    const marks = await Marks.find({ student: student._id }).sort({ semester: 1, subject: 1 });
+    const marks = await Marks.find({ student: student._id }).sort({ year: 1, subject: 1 });
     res.json(marks);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -34,13 +34,13 @@ const getMyMarks = async (req, res) => {
 // Create marks entry
 const createMarks = async (req, res) => {
   try {
-    const { student, subject, subjectCode, semester, internalMarks, externalMarks, examType, academicYear } = req.body;
+    const { student, subject, subjectCode, year, internalMarks, externalMarks, examType, academicYear } = req.body;
     
-    const existing = await Marks.findOne({ student, subject, semester, academicYear, examType });
-    if (existing) return res.status(400).json({ message: 'Marks already entered for this subject/semester/exam type' });
+    const existing = await Marks.findOne({ student, subject, year, academicYear, examType });
+    if (existing) return res.status(400).json({ message: 'Marks already entered for this subject/year/exam type' });
     
     const marks = await Marks.create({
-      student, subject, subjectCode, semester, internalMarks: internalMarks || 0,
+      student, subject, subjectCode, year, internalMarks: internalMarks || 0,
       externalMarks: externalMarks || 0, examType, academicYear, enteredBy: req.user._id
     });
     
@@ -78,7 +78,7 @@ const getStudentMarksSummary = async (req, res) => {
   try {
     const marks = await Marks.find({ student: req.params.studentId });
     const summary = marks.reduce((acc, m) => {
-      const key = `Sem ${m.semester}`;
+      const key = `${m.year}`;
       if (!acc[key]) acc[key] = { subjects: [], avgGrade: 0 };
       acc[key].subjects.push({ subject: m.subject, total: m.totalMarks, grade: m.grade });
       return acc;

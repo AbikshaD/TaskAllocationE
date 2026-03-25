@@ -4,7 +4,7 @@ const marksSchema = new mongoose.Schema({
   student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
   subject: { type: String, required: true },
   subjectCode: { type: String },
-  semester: { type: Number, required: true },
+  year: { type: String, required: true },
   internalMarks: { type: Number, default: 0, min: 0, max: 50 },
   externalMarks: { type: Number, default: 0, min: 0, max: 100 },
   totalMarks: { type: Number },

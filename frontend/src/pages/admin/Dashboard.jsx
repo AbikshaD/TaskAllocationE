@@ -136,7 +136,7 @@ export default function AdminDashboard() {
                     <p className="text-sm font-medium text-slate-200 truncate">{s.name}</p>
                     <p className="text-xs text-slate-500">{s.studentId} · {s.department}</p>
                   </div>
-                  <span className="badge-blue text-xs">{s.semester}th Sem</span>
+                  <span className="badge-blue text-xs">{s.year}</span>
                 </div>
               ))}
             </div>

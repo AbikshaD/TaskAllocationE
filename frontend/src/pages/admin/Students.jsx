@@ -7,7 +7,7 @@ const DEPARTMENTS = ['Computer Science', 'Information Technology', 'Electronics'
 const SKILLS_LIST = ['Python', 'Java', 'JavaScript', 'React', 'Node.js', 'MongoDB', 'SQL', 'Machine Learning', 'Data Science', 'C++', 'PHP', 'Django', 'Spring Boot', 'Docker', 'Git'];
 
 function StudentModal({ student, onClose, onSave }) {
-  const [form, setForm] = useState(student || { name: '', email: '', department: '', semester: 1, batch: '', rollNumber: '', skills: [] });
+  const [form, setForm] = useState(student || { name: '', email: '', department: '', year: 'First Year', batch: '', rollNumber: '', skills: [] });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -68,9 +68,9 @@ function StudentModal({ student, onClose, onSave }) {
               </select>
             </div>
             <div>
-              <label className="label">Semester</label>
-              <select className="input" required value={form.semester} onChange={e => setForm({ ...form, semester: Number(e.target.value) })}>
-                {[1,2,3,4,5,6,7,8].map(n => <option key={n}>{n}</option>)}
+              <label className="label">Year</label>
+              <select className="input" required value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}>
+                {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -144,7 +144,7 @@ function BulkUploadModal({ onClose, onSuccess }) {
         <div className="p-6 space-y-4">
           <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium mb-2">Required columns:</p>
-            <p className="text-xs text-slate-500 font-mono">name, email, department, semester, batch, rollNumber, skills (comma-separated)</p>
+            <p className="text-xs text-slate-500 font-mono">name, email, department, year, batch, rollNumber, skills (comma-separated)</p>
           </div>
 
           <div className="border-2 border-dashed border-slate-700 rounded-xl p-8 text-center">
@@ -268,7 +268,7 @@ export default function Students() {
               <th>Student ID</th>
               <th>Name</th>
               <th>Department</th>
-              <th>Semester</th>
+              <th>Year</th>
               <th>Batch</th>
               <th>Skills</th>
               <th>Actions</th>
@@ -294,7 +294,7 @@ export default function Students() {
                   </div>
                 </td>
                 <td className="text-slate-400 text-xs">{s.department}</td>
-                <td><span className="badge-blue">Sem {s.semester}</span></td>
+                <td><span className="badge-blue">{s.year}</span></td>
                 <td className="text-slate-400 text-xs">{s.batch}</td>
                 <td>
                   <div className="flex flex-wrap gap-1">

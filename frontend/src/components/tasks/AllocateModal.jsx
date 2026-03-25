@@ -25,7 +25,7 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
     dueDate: '',
     department: '',
     batch: '',
-    semester: '',
+    year: '',
     studentsPerTopic: '',
     maxMarks: '100',
   });
@@ -163,11 +163,11 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
                   onChange={e => setForm({ ...form, dueDate: e.target.value })} />
               </div>
               <div>
-                <label className="label">Semester (optional)</label>
-                <select className="input" value={form.semester}
-                  onChange={e => setForm({ ...form, semester: e.target.value })}>
-                  <option value="">All semesters</option>
-                  {[1,2,3,4,5,6,7,8].map(n => <option key={n}>{n}</option>)}
+                <label className="label">Year (optional)</label>
+                <select className="input" value={form.year}
+                  onChange={e => setForm({ ...form, year: e.target.value })}>
+                  <option value="">All years</option>
+                  {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
                 </select>
               </div>
               <div>
