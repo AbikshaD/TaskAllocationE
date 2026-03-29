@@ -40,13 +40,13 @@ const getStudent = async (req, res) => {
 // Create student
 const createStudent = async (req, res) => {
   try {
-    const { name, email, department, year, batch, rollNumber, skills } = req.body;
+    const { name, email, department, year, batch, skills } = req.body;
     
-    console.log('📝 Creating student:', { name, email, department, year, batch, rollNumber });
+    console.log('📝 Creating student:', { name, email, department, year, batch });
     
     // Validation
-    if (!name || !email || !department || !batch || !rollNumber) {
-      return res.status(400).json({ message: 'Missing required fields: name, email, department, batch, rollNumber' });
+    if (!name || !email || !department || !batch) {
+      return res.status(400).json({ message: 'Missing required fields: name, email, department, batch' });
     }
     
     // Check existing email
@@ -54,7 +54,7 @@ const createStudent = async (req, res) => {
     if (existingEmail) return res.status(400).json({ message: 'Email already exists' });
 
     // Create student
-    const student = await Student.create({ name, email, department, year: year || 'First Year', batch, rollNumber, skills: skills || [] });
+    const student = await Student.create({ name, email, department, year: year || 'First Year', batch, skills: skills || [] });
     console.log('✅ Student created:', student._id);
 
     // Create user account for student
@@ -146,7 +146,6 @@ const bulkUpload = async (req, res) => {
           department: data.department || data.Department,
           year: data.year || data.Year,
           batch: data.batch || data.Batch,
-          rollNumber: data.rollNumber || data.RollNumber || data['Roll Number'],
           skills: (data.skills || data.Skills || '').split(',').map(s => s.trim()).filter(Boolean),
         });
 
@@ -190,19 +189,19 @@ const updateSkills = async (req, res) => {
 const downloadSampleCSV = (req, res) => {
   try {
     const sampleData = [
-      { name: 'Priya Sharma', email: 'priya.sharma@college.edu', department: 'Computer Science', year: 'Second Year', batch: '2023-2027', rollNumber: 'CS101', skills: 'Python,Java,JavaScript' },
-      { name: 'Aarav Singh', email: 'aarav.singh@college.edu', department: 'Computer Science', year: 'Second Year', batch: '2023-2027', rollNumber: 'CS102', skills: 'React,Node.js,MongoDB' },
-      { name: 'Zara Khan', email: 'zara.khan@college.edu', department: 'Information Technology', year: 'First Year', batch: '2022-2026', rollNumber: 'IT101', skills: 'Python,Machine Learning,Data Science' },
-      { name: 'Rohan Patel', email: 'rohan.patel@college.edu', department: 'Computer Science', year: 'First Year', batch: '2023-2027', rollNumber: 'CS103', skills: 'C++,Java,Python' },
-      { name: 'Neha Gupta', email: 'neha.gupta@college.edu', department: 'Information Technology', year: 'Second Year', batch: '2022-2026', rollNumber: 'IT102', skills: 'Java,Spring Boot,SQL' },
+      { name: 'Priya Sharma', email: 'priya.sharma@college.edu', department: 'Computer Science', year: 'Second Year', batch: '2023-2027', skills: 'Python,Java,JavaScript' },
+      { name: 'Aarav Singh', email: 'aarav.singh@college.edu', department: 'Computer Science', year: 'Second Year', batch: '2023-2027', skills: 'React,Node.js,MongoDB' },
+      { name: 'Zara Khan', email: 'zara.khan@college.edu', department: 'Information Technology', year: 'First Year', batch: '2022-2026', skills: 'Python,Machine Learning,Data Science' },
+      { name: 'Rohan Patel', email: 'rohan.patel@college.edu', department: 'Computer Science', year: 'First Year', batch: '2023-2027', skills: 'C++,Java,Python' },
+      { name: 'Neha Gupta', email: 'neha.gupta@college.edu', department: 'Information Technology', year: 'Second Year', batch: '2022-2026', skills: 'Java,Spring Boot,SQL' },
     ];
 
     // Create CSV header
-    const headers = ['name', 'email', 'department', 'year', 'batch', 'rollNumber', 'skills'];
+    const headers = ['name', 'email', 'department', 'year', 'batch', 'skills'];
     const csvContent = [
       headers.join(','),
       ...sampleData.map(row => 
-        `"${row.name}","${row.email}","${row.department}","${row.year}","${row.batch}","${row.rollNumber}","${row.skills}"`
+        `"${row.name}","${row.email}","${row.department}","${row.year}","${row.batch}","${row.skills}"`
       )
     ].join('\n');
 

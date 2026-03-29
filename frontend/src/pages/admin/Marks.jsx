@@ -3,8 +3,17 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { Plus, X, Trash2, Edit2, BookOpen } from 'lucide-react';
 
-function MarksModal({ mark, students, onClose, onSave }) {
-  const [form, setForm] = useState(mark || { student: '', subject: '', subjectCode: '', year: 'First Year', internalMarks: 0, externalMarks: 0, examType: 'internal', academicYear: '2024-25' });
+function MarksModal({ mark, students, subjects, onClose, onSave }) {
+  const getCurrentAcademicYear = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    return d.getMonth() >= 5 ? `${y}-${String(y + 1).slice(-2)}` : `${y - 1}-${String(y).slice(-2)}`;
+  };
+  const [form, setForm] = useState(mark || { 
+    student: '', subject: '', subjectCode: '', year: 'First Year', 
+    internalMarks: 0, externalMarks: 0, examType: 'internal', 
+    academicYear: getCurrentAcademicYear() 
+  });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -37,25 +46,42 @@ function MarksModal({ mark, students, onClose, onSave }) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="label">Student</label>
-            <select className="input" required value={form.student} onChange={e => setForm({ ...form, student: e.target.value })}>
+            <select className="input" required value={form.student} onChange={e => {
+              const s = students.find(st => st._id === e.target.value);
+              setForm({ ...form, student: e.target.value, year: s ? s.year : form.year });
+            }}>
               <option value="">Select student</option>
               {students.map(s => <option key={s._id} value={s._id}>{s.name} ({s.studentId})</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="label">Year</label>
+              <select className="input" value={form.year} onChange={e => {
+                setForm({ ...form, year: e.target.value, subject: '', subjectCode: '' });
+              }}>
+                {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
+              </select>
+            </div>
             <div>
-              <label className="label">Subject Name</label>
-              <input className="input" required value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} placeholder="Data Structures" />
+              <label className="label">Subject</label>
+              <select className="input" required value={form.subject} onChange={e => {
+                const sub = subjects.find(s => s.name === e.target.value);
+                if (sub) {
+                  setForm({ ...form, subject: sub.name, subjectCode: sub.code });
+                } else {
+                  setForm({ ...form, subject: e.target.value });
+                }
+              }}>
+                <option value="">Select subject</option>
+                {subjects.filter(s => s.year === form.year).map(s => (
+                  <option key={s._id} value={s.name}>{s.name} ({s.code}) - {s.department}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="label">Subject Code</label>
-              <input className="input" value={form.subjectCode} onChange={e => setForm({ ...form, subjectCode: e.target.value })} placeholder="CS301" />
-            </div>
-            <div>
-              <label className="label">Year</label>
-              <select className="input" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}>
-                {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
-              </select>
+              <input value={form.subjectCode} readOnly className="input bg-slate-800/50" />
             </div>
             <div>
               <label className="label">Exam Type</label>
@@ -94,6 +120,7 @@ const gradeColor = { O: 'badge-green', 'A+': 'badge-blue', A: 'badge-blue', 'B+'
 export default function Marks() {
   const [marks, setMarks] = useState([]);
   const [students, setStudents] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editMark, setEditMark] = useState(null);
@@ -102,12 +129,14 @@ export default function Marks() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const [mRes, sRes] = await Promise.all([
+        const [mRes, sRes, subRes] = await Promise.all([
           api.get('/marks', { params: filterStudent ? { student: filterStudent } : {} }),
           api.get('/students'),
+          api.get('/subjects'),
         ]);
         setMarks(mRes.data);
         setStudents(sRes.data);
+        setSubjects(subRes.data);
       } catch (err) { toast.error('Failed to fetch'); }
       finally { setLoading(false); }
     };
@@ -206,7 +235,7 @@ export default function Marks() {
       </div>
 
       {showModal && (
-        <MarksModal mark={editMark} students={students}
+        <MarksModal mark={editMark} students={students} subjects={subjects}
           onClose={() => { setShowModal(false); setEditMark(null); }}
           onSave={handleSave}
         />

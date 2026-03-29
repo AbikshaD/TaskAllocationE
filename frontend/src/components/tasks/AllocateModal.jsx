@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { X, Upload, Plus, Trash2, Download, FileSpreadsheet, Info } from 'lucide-react';
@@ -20,12 +20,24 @@ const DEPARTMENTS = [
 export default function AllocateModal({ type, onClose, onSuccess }) {
   const isLab = type === 'lab';
 
+  const getExpectedBatch = (studyingYear) => {
+    const d = new Date();
+    let startYear = d.getFullYear();
+    if (d.getMonth() < 5) startYear--; 
+    let offset = 0;
+    if (studyingYear === 'Second Year') offset = 1;
+    else if (studyingYear === 'Third Year') offset = 2;
+    else if (studyingYear === 'Final Year') offset = 3;
+    const joinYear = startYear - offset;
+    return `${joinYear}-${joinYear + 4}`;
+  };
+
   const [form, setForm] = useState({
     subject: '',
     dueDate: '',
     department: '',
-    batch: '',
-    year: '',
+    batch: getExpectedBatch('First Year'),
+    year: 'First Year',
     studentsPerTopic: '',
     maxMarks: '100',
   });
@@ -36,7 +48,20 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [subjects, setSubjects] = useState([]);
   const fileRef = useRef();
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const res = await api.get('/subjects');
+        setSubjects(res.data);
+      } catch (err) {
+        console.error('Failed to fetch subjects');
+      }
+    };
+    fetchSubjects();
+  }, []);
 
   const endpoint = {
     assignment: '/tasks/assignments/allocate',
@@ -147,32 +172,39 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
               <div className="col-span-2">
                 <label className="label">Department *</label>
                 <select className="input" required value={form.department}
-                  onChange={e => setForm({ ...form, department: e.target.value })}>
+                  onChange={e => setForm({ ...form, department: e.target.value, subject: '' })}>
                   <option value="">Select department...</option>
                   {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
                 </select>
               </div>
+              <div className="col-span-2">
+                <label className="label">Year *</label>
+                <select className="input" required value={form.year}
+                  onChange={e => {
+                    setForm({ ...form, year: e.target.value, subject: '', batch: getExpectedBatch(e.target.value) });
+                  }}>
+                  {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
+                </select>
+              </div>
               <div>
-                <label className="label">Subject</label>
-                <input className="input" placeholder="e.g. Data Structures" value={form.subject}
-                  onChange={e => setForm({ ...form, subject: e.target.value })} />
+                <label className="label">Subject *</label>
+                <select className="input" required value={form.subject}
+                  onChange={e => setForm({ ...form, subject: e.target.value })}>
+                  <option value="">Select subject...</option>
+                  {subjects
+                    .filter(s => s.department === form.department && s.year === form.year)
+                    .map(s => <option key={s._id} value={s.name}>{s.name} ({s.code})</option>)}
+                </select>
               </div>
               <div>
                 <label className="label">Due Date *</label>
                 <input className="input" type="date" required value={form.dueDate}
                   onChange={e => setForm({ ...form, dueDate: e.target.value })} />
               </div>
+
               <div>
-                <label className="label">Year (optional)</label>
-                <select className="input" value={form.year}
-                  onChange={e => setForm({ ...form, year: e.target.value })}>
-                  <option value="">All years</option>
-                  {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="label">Batch (optional)</label>
-                <input className="input" placeholder="e.g. 2022-2026" value={form.batch}
+                <label className="label">Batch / Academic Year *</label>
+                <input className="input" placeholder="e.g. 2022-2026" required value={form.batch || getExpectedBatch(form.year)}
                   onChange={e => setForm({ ...form, batch: e.target.value })} />
               </div>
               <div>

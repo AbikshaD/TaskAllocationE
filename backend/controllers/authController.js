@@ -33,8 +33,8 @@ const studentLogin = async (req, res) => {
   try {
     const { studentId, password } = req.body;
     const user = await User.findOne({ studentId, role: 'student' });
-    if (!user || !user.isActive) return res.status(401).json({ message: 'Invalid student ID or account deactivated' });
-    if (!(await user.comparePassword(password))) return res.status(401).json({ message: 'Invalid student ID or password' });
+    if (!user || !user.isActive) return res.status(401).json({ message: 'Invalid Roll Number or account deactivated' });
+    if (!(await user.comparePassword(password))) return res.status(401).json({ message: 'Invalid Roll Number or password' });
 
     const student = await Student.findOne({ studentId });
     res.json({ _id: user._id, name: user.name, studentId: user.studentId, role: user.role, studentData: student, token: generateToken(user._id) });

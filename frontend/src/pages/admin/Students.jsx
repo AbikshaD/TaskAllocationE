@@ -7,12 +7,12 @@ const DEPARTMENTS = ['Computer Science', 'Information Technology', 'Electronics'
 const SKILLS_LIST = ['Python', 'Java', 'JavaScript', 'React', 'Node.js', 'MongoDB', 'SQL', 'Machine Learning', 'Data Science', 'C++', 'PHP', 'Django', 'Spring Boot', 'Docker', 'Git'];
 
 function StudentModal({ student, onClose, onSave }) {
-  const [form, setForm] = useState(student || { name: '', email: '', department: '', year: 'First Year', batch: '', rollNumber: '', skills: [] });
+  const [form, setForm] = useState(student || { name: '', email: '', department: '', year: 'First Year', batch: '', skills: [] });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.department || !form.batch || !form.rollNumber) {
+    if (!form.name || !form.email || !form.department || !form.batch) {
       return toast.error('Please fill all required fields');
     }
     setLoading(true);
@@ -77,10 +77,6 @@ function StudentModal({ student, onClose, onSave }) {
               <label className="label">Batch</label>
               <input className="input" required value={form.batch} onChange={e => setForm({ ...form, batch: e.target.value })} placeholder="2021-2025" />
             </div>
-            <div>
-              <label className="label">Roll Number</label>
-              <input className="input" required value={form.rollNumber} onChange={e => setForm({ ...form, rollNumber: e.target.value })} placeholder="21CS001" />
-            </div>
           </div>
 
           <div>
@@ -144,7 +140,7 @@ function BulkUploadModal({ onClose, onSuccess }) {
         <div className="p-6 space-y-4">
           <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium mb-2">Required columns:</p>
-            <p className="text-xs text-slate-500 font-mono">name, email, department, year, batch, rollNumber, skills (comma-separated)</p>
+            <p className="text-xs text-slate-500 font-mono">name, email, department, year, batch, skills (comma-separated)</p>
           </div>
 
           <div className="border-2 border-dashed border-slate-700 rounded-xl p-8 text-center">
@@ -179,13 +175,16 @@ export default function Students() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
   const [editStudent, setEditStudent] = useState(null);
 
   const fetchStudents = async () => {
     try {
-      const res = await api.get('/students', { params: { search } });
+      const params = { search };
+      if (yearFilter) params.year = yearFilter;
+      const res = await api.get('/students', { params });
       setStudents(res.data);
     } catch (err) {
       toast.error('Failed to fetch students');
@@ -194,7 +193,7 @@ export default function Students() {
     }
   };
 
-  useEffect(() => { fetchStudents(); }, [search]);
+  useEffect(() => { fetchStudents(); }, [search, yearFilter]);
 
   const handleDelete = async (id) => {
     if (!confirm('Deactivate this student?')) return;
@@ -253,11 +252,17 @@ export default function Students() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-        <input className="input pl-10 max-w-sm" placeholder="Search by name, ID, email..."
-          value={search} onChange={e => setSearch(e.target.value)} />
+      {/* Search and Filters */}
+      <div className="flex gap-3 mb-6 flex-wrap">
+        <div className="relative flex-1 min-w-48 max-w-sm">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input className="input pl-10 w-full" placeholder="Search by name, ID, email..."
+            value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+        <select className="input w-48" value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
+          <option value="">All Years</option>
+          {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(y => <option key={y}>{y}</option>)}
+        </select>
       </div>
 
       {/* Table */}
@@ -265,7 +270,7 @@ export default function Students() {
         <table className="table">
           <thead>
             <tr>
-              <th>Student ID</th>
+              <th>Roll Number</th>
               <th>Name</th>
               <th>Department</th>
               <th>Year</th>

@@ -13,6 +13,7 @@ import ManageAdmins from '../pages/host/Admins';
 import AdminDashboard from '../pages/admin/Dashboard';
 import Students from '../pages/admin/Students';
 import Marks from '../pages/admin/Marks';
+import Subjects from '../pages/admin/Subjects';
 import AdminAssignments from '../pages/admin/tasks/Assignments';
 import AdminPresentations from '../pages/admin/tasks/Presentations';
 import AdminLabTasks from '../pages/admin/tasks/LabTasks';
@@ -51,6 +52,7 @@ function ProtectedLayout({ allowedRoles, redirectTo }) {
               <Route index element={<AdminDashboard />} />
               <Route path="students" element={<Students />} />
               <Route path="marks" element={<Marks />} />
+              <Route path="subjects" element={<Subjects />} />
               <Route path="tasks/assignments" element={<AdminAssignments />} />
               <Route path="tasks/presentations" element={<AdminPresentations />} />
               <Route path="tasks/lab-tasks" element={<AdminLabTasks />} />

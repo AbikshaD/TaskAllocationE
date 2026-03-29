@@ -116,10 +116,10 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {role === 'student' ? (
               <div>
-                <label className="label">Student ID</label>
+                <label className="label">Roll Number</label>
                 <div className="relative">
                   <BookOpen size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-                  <input type="text" required className="input pl-10" placeholder="STU0001"
+                  <input type="text" required className="input pl-10" placeholder="e.g. CS2001"
                     value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} />
                 </div>
               </div>

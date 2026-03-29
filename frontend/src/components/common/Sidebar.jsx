@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   GraduationCap, LayoutDashboard, Users, BookOpen, ClipboardList,
-  Monitor, FlaskConical, FolderKanban, LogOut, Award, Crown, ShieldCheck
+  Monitor, FlaskConical, FolderKanban, LogOut, Award, Crown, ShieldCheck, Library
 } from 'lucide-react';
 
 const hostLinks = [
@@ -13,6 +13,7 @@ const hostLinks = [
 const adminLinks = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/admin/students', icon: Users, label: 'Students' },
+  { to: '/admin/subjects', icon: Library, label: 'Subjects' },
   { to: '/admin/marks', icon: BookOpen, label: 'Marks & Grades' },
   { divider: true, label: 'Task Allocation' },
   { to: '/admin/tasks/assignments', icon: ClipboardList, label: 'Assignments' },

@@ -21,6 +21,7 @@ app.use('/api/host', require('./routes/host'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/marks', require('./routes/marks'));
 app.use('/api/tasks', require('./routes/tasks'));
+app.use('/api/subjects', require('./routes/subjects'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'OK', message: 'Server is running', timestamp: new Date() }));
 

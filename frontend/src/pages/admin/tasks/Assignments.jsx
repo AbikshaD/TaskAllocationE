@@ -91,13 +91,14 @@ export default function AdminAssignments() {
   const [loading, setLoading] = useState(true);
   const [showAllocate, setShowAllocate] = useState(false);
   const [reviewing, setReviewing] = useState(null);
-  const [filters, setFilters] = useState({ status: 'all', department: '', search: '' });
+  const [filters, setFilters] = useState({ status: 'all', department: '', year: '', search: '' });
 
   const fetch = async () => {
     setLoading(true);
     try {
       const params = {};
       if (filters.department) params.department = filters.department;
+      if (filters.year) params.year = filters.year;
       if (filters.status !== 'all') params.status = filters.status;
       const res = await api.get('/tasks/assignments', { params });
       setAssignments(res.data);
@@ -105,7 +106,7 @@ export default function AdminAssignments() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetch(); }, [filters.status, filters.department]);
+  useEffect(() => { fetch(); }, [filters.status, filters.department, filters.year]);
 
   const handleApprove = async (id, status, feedback, marks) => {
     const res = await api.put(`/tasks/assignments/${id}/approve`, { status, adminFeedback: feedback, obtainedMarks: marks });
@@ -153,6 +154,11 @@ export default function AdminAssignments() {
           onChange={e => setFilters(f => ({ ...f, department: e.target.value }))}>
           <option value="">All Departments</option>
           {['Computer Science','Information Technology','Electronics & Communication','Electrical Engineering','Mechanical Engineering','Civil Engineering'].map(d => <option key={d}>{d}</option>)}
+        </select>
+        <select className="input w-48" value={filters.year}
+          onChange={e => setFilters(f => ({ ...f, year: e.target.value }))}>
+          <option value="">All Years</option>
+          {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(y => <option key={y}>{y}</option>)}
         </select>
         <div className="flex gap-1 bg-slate-800/60 p-1 rounded-xl">
           {['all','allocated','submitted','approved','rejected'].map(s => (

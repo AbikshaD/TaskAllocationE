@@ -7,7 +7,7 @@ const studentSchema = new mongoose.Schema({
   department: { type: String, required: true },
   year: { type: String, required: true },
   batch: { type: String, required: true },
-  rollNumber: { type: String, required: true },
+
   skills: [{ type: String }],
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   isActive: { type: Boolean, default: true },
@@ -26,9 +26,23 @@ studentSchema.pre('validate', function(next) {
 studentSchema.pre('save', async function(next) {
   try {
     if (this.studentId.startsWith('STU_TEMP_')) {
-      // Generate final studentId based on count
-      const count = await mongoose.model('Student').countDocuments();
-      this.studentId = `STU${String(count + 1).padStart(4, '0')}`;
+      let prefix = 'STU';
+      const dept = this.department || '';
+      if (dept.includes('Computer')) prefix = 'CS';
+      else if (dept.includes('Information')) prefix = 'IT';
+      else if (dept.includes('Electronic')) prefix = 'EC';
+      else if (dept.includes('Electrical')) prefix = 'EE';
+      else if (dept.includes('Mechanical')) prefix = 'ME';
+      else if (dept.includes('Civil')) prefix = 'CE';
+
+      let yearPrefix = '1';
+      if (this.year === 'Second Year') yearPrefix = '2';
+      else if (this.year === 'Third Year') yearPrefix = '3';
+      else if (this.year === 'Final Year') yearPrefix = '4';
+
+      // Generate final studentId based on count per department and year
+      const count = await mongoose.model('Student').countDocuments({ department: this.department, year: this.year });
+      this.studentId = `${prefix}${yearPrefix}${String(count + 1).padStart(3, '0')}`;
     }
     next();
   } catch (error) {

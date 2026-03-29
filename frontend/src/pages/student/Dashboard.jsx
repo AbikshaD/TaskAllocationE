@@ -76,7 +76,7 @@ export default function StudentDashboard() {
         </div>
         <div className="text-right">
           <span className="font-mono text-blue-400 text-lg font-bold">{user?.studentId}</span>
-          <p className="text-xs text-slate-500 mt-1">Student ID</p>
+          <p className="text-xs text-slate-500 mt-1">Roll Number</p>
         </div>
       </div>
 
