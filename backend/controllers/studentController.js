@@ -20,6 +20,28 @@ const getStudents = async (req, res) => {
         { email: { $regex: search, $options: 'i' } },
       ];
     }
+
+    // Securely restrict Admins (Faculty) to only see their mapped students
+    if (req.user && req.user.role === 'admin') {
+      if (req.user.mappedRanges && req.user.mappedRanges.length > 0) {
+        // Create a separate $and group for the mapping logic to not conflict with search $or
+        const mappingFilter = {
+          $or: req.user.mappedRanges.map(r => ({
+            department: r.department,
+            studentId: { $gte: r.fromRoll, $lte: r.toRoll }
+          }))
+        };
+        
+        // Use $and to combine existing filters with the mapping security layer
+        const finalFilter = { $and: [filter, mappingFilter] };
+        const students = await Student.find(finalFilter).sort({ createdAt: -1 });
+        return res.json(students);
+      } else {
+        // If an admin has NO mappings, they technically see NO students (Secure by default)
+        return res.json([]);
+      }
+    }
+
     const students = await Student.find(filter).sort({ createdAt: -1 });
     res.json(students);
   } catch (error) {
