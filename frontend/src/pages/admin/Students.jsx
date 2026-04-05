@@ -4,10 +4,9 @@ import toast from 'react-hot-toast';
 import { Plus, Upload, Search, Edit2, Trash2, X, Download, Eye } from 'lucide-react';
 
 const DEPARTMENTS = ['Computer Science', 'Information Technology', 'Electronics', 'Mechanical', 'Civil', 'Electrical'];
-const SKILLS_LIST = ['Python', 'Java', 'JavaScript', 'React', 'Node.js', 'MongoDB', 'SQL', 'Machine Learning', 'Data Science', 'C++', 'PHP', 'Django', 'Spring Boot', 'Docker', 'Git'];
 
 function StudentModal({ student, onClose, onSave }) {
-  const [form, setForm] = useState(student || { name: '', email: '', department: '', year: 'First Year', batch: '', skills: [] });
+  const [form, setForm] = useState(student || { studentId: '', name: '', email: '', department: '', year: 'First Year', batch: '' });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -36,12 +35,7 @@ function StudentModal({ student, onClose, onSave }) {
     }
   };
 
-  const toggleSkill = (skill) => {
-    setForm(f => ({
-      ...f,
-      skills: f.skills.includes(skill) ? f.skills.filter(s => s !== skill) : [...f.skills, skill]
-    }));
-  };
+
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -55,6 +49,10 @@ function StudentModal({ student, onClose, onSave }) {
             <div className="col-span-2">
               <label className="label">Full Name</label>
               <input className="input" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Student full name" />
+            </div>
+            <div className="col-span-2">
+              <label className="label">Roll Number</label>
+              <input className="input" required value={form.rollNumber || form.studentId} onChange={e => setForm({ ...form, rollNumber: e.target.value, studentId: e.target.value })} placeholder="e.g. CS1001" />
             </div>
             <div className="col-span-2">
               <label className="label">Email</label>
@@ -79,20 +77,6 @@ function StudentModal({ student, onClose, onSave }) {
             </div>
           </div>
 
-          <div>
-            <label className="label">Skills</label>
-            <div className="flex flex-wrap gap-2">
-              {SKILLS_LIST.map(skill => (
-                <button type="button" key={skill}
-                  onClick={() => toggleSkill(skill)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                    form.skills.includes(skill) ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                  }`}>
-                  {skill}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
@@ -140,7 +124,7 @@ function BulkUploadModal({ onClose, onSuccess }) {
         <div className="p-6 space-y-4">
           <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium mb-2">Required columns:</p>
-            <p className="text-xs text-slate-500 font-mono">name, email, department, year, batch, skills (comma-separated)</p>
+            <p className="text-xs text-slate-500 font-mono">rollNumber, name, email, department, year, batch</p>
           </div>
 
           <div className="border-2 border-dashed border-slate-700 rounded-xl p-8 text-center">
@@ -176,6 +160,7 @@ export default function Students() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [yearFilter, setYearFilter] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
   const [editStudent, setEditStudent] = useState(null);
@@ -184,6 +169,7 @@ export default function Students() {
     try {
       const params = { search };
       if (yearFilter) params.year = yearFilter;
+      if (departmentFilter) params.department = departmentFilter;
       const res = await api.get('/students', { params });
       setStudents(res.data);
     } catch (err) {
@@ -193,16 +179,33 @@ export default function Students() {
     }
   };
 
-  useEffect(() => { fetchStudents(); }, [search, yearFilter]);
+  useEffect(() => { fetchStudents(); }, [search, yearFilter, departmentFilter]);
 
   const handleDelete = async (id) => {
-    if (!confirm('Deactivate this student?')) return;
+    if (!confirm('Delete this student?')) return;
     try {
       await api.delete(`/students/${id}`);
-      toast.success('Student deactivated');
+      toast.success('Student deleted');
       setStudents(students.filter(s => s._id !== id));
     } catch (err) {
       toast.error('Failed to delete');
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!confirm('WARNING: Are you absolutely sure you want to permanently delete ALL students? This action cannot be undone!')) return;
+    
+    // Safety check with double confirmation
+    if (prompt('Type "DELETE ALL" to confirm wiping all student data:') !== 'DELETE ALL') {
+      return toast.error('Action cancelled. Did not type exactly "DELETE ALL"');
+    }
+
+    try {
+      await api.delete('/students/all');
+      toast.success('All students permanently deleted');
+      setStudents([]);
+    } catch (err) {
+      toast.error('Failed to delete all students');
     }
   };
 
@@ -240,6 +243,11 @@ export default function Students() {
           <p className="text-slate-400 mt-1">{students.length} students enrolled</p>
         </div>
         <div className="flex gap-3">
+          {students.length > 0 && (
+            <button onClick={handleDeleteAll} className="btn-secondary flex items-center gap-2 text-red-500 border-red-500/20 hover:border-red-500 hover:bg-red-500/10 transition-colors">
+              <Trash2 size={16} /> Delete All
+            </button>
+          )}
           <button onClick={downloadSampleCSV} className="btn-secondary flex items-center gap-2">
             <Download size={16} /> Download Sample
           </button>
@@ -259,6 +267,10 @@ export default function Students() {
           <input className="input pl-10 w-full" placeholder="Search by name, ID, email..."
             value={search} onChange={e => setSearch(e.target.value)} />
         </div>
+        <select className="input w-48" value={departmentFilter} onChange={e => setDepartmentFilter(e.target.value)}>
+          <option value="">All Departments</option>
+          {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
+        </select>
         <select className="input w-48" value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
           <option value="">All Years</option>
           {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(y => <option key={y}>{y}</option>)}
@@ -275,15 +287,14 @@ export default function Students() {
               <th>Department</th>
               <th>Year</th>
               <th>Batch</th>
-              <th>Skills</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="text-center py-10 text-slate-500">Loading...</td></tr>
+              <tr><td colSpan={6} className="text-center py-10 text-slate-500">Loading...</td></tr>
             ) : students.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-10 text-slate-500">No students found</td></tr>
+              <tr><td colSpan={6} className="text-center py-10 text-slate-500">No students found</td></tr>
             ) : students.map(s => (
               <tr key={s._id}>
                 <td><span className="font-mono text-blue-400 text-xs">{s.studentId}</span></td>
@@ -301,14 +312,7 @@ export default function Students() {
                 <td className="text-slate-400 text-xs">{s.department}</td>
                 <td><span className="badge-blue">{s.year}</span></td>
                 <td className="text-slate-400 text-xs">{s.batch}</td>
-                <td>
-                  <div className="flex flex-wrap gap-1">
-                    {s.skills?.slice(0, 3).map(skill => (
-                      <span key={skill} className="badge-purple text-xs">{skill}</span>
-                    ))}
-                    {s.skills?.length > 3 && <span className="text-xs text-slate-500">+{s.skills.length - 3}</span>}
-                  </div>
-                </td>
+
                 <td>
                   <div className="flex items-center gap-2">
                     <button onClick={() => { setEditStudent(s); setShowModal(true); }}

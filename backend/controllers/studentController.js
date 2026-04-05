@@ -3,6 +3,7 @@ const User = require('../models/User');
 const XLSX = require('xlsx');
 const csv = require('csv-parser');
 const fs = require('fs');
+const mongoose = require('mongoose');
 
 // Get all students
 const getStudents = async (req, res) => {
@@ -37,24 +38,24 @@ const getStudent = async (req, res) => {
   }
 };
 
-// Create student
 const createStudent = async (req, res) => {
   try {
-    const { name, email, department, year, batch, skills } = req.body;
+    const { name, email, department, year, batch, rollNumber, studentId } = req.body;
+    const finalId = rollNumber || studentId;
     
-    console.log('📝 Creating student:', { name, email, department, year, batch });
+    console.log('📝 Creating student:', { name, email, department, year, batch, finalId });
     
     // Validation
-    if (!name || !email || !department || !batch) {
-      return res.status(400).json({ message: 'Missing required fields: name, email, department, batch' });
+    if (!name || !email || !department || !batch || !finalId) {
+      return res.status(400).json({ message: 'Missing required fields: name, email, department, batch, rollNumber' });
     }
     
     // Check existing email
-    const existingEmail = await Student.findOne({ email });
-    if (existingEmail) return res.status(400).json({ message: 'Email already exists' });
+    const existing = await Student.findOne({ $or: [{ email }, { studentId: finalId }] });
+    if (existing) return res.status(400).json({ message: 'Email or Roll Number already exists' });
 
     // Create student
-    const student = await Student.create({ name, email, department, year: year || 'First Year', batch, skills: skills || [] });
+    const student = await Student.create({ studentId: finalId, name, email, department, year: year || 'First Year', batch });
     console.log('✅ Student created:', student._id);
 
     // Create user account for student
@@ -105,10 +106,21 @@ const updateStudent = async (req, res) => {
 // Delete student
 const deleteStudent = async (req, res) => {
   try {
-    const student = await Student.findByIdAndUpdate(req.params.id, { isActive: false }, { new: true });
+    const student = await Student.findByIdAndDelete(req.params.id);
     if (!student) return res.status(404).json({ message: 'Student not found' });
-    await User.findOneAndUpdate({ studentId: student.studentId }, { isActive: false });
-    res.json({ message: 'Student deactivated successfully' });
+    await User.findOneAndDelete({ studentId: student.studentId });
+    res.json({ message: 'Student deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete all students
+const deleteAllStudents = async (req, res) => {
+  try {
+    await Student.deleteMany({});
+    await User.deleteMany({ role: 'student' });
+    res.json({ message: 'All students deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -138,32 +150,69 @@ const bulkUpload = async (req, res) => {
 
     const results = { success: [], failed: [] };
 
+    // Gather existing emails and ids to validate entirely in memory (massive speed boost)
+    const existingStudents = await Student.find({}, 'email studentId').lean();
+    const existingEmails = new Set(existingStudents.map(s => s.email));
+    const existingIds = new Set(existingStudents.map(s => s.studentId));
+
+    const studentsToInsert = [];
+    const usersToInsert = [];
+
+    const batchEmails = new Set();
+    const batchIds = new Set();
+
     for (const data of studentsData) {
-      try {
-        const student = await Student.create({
-          name: data.name || data.Name,
-          email: data.email || data.Email,
-          department: data.department || data.Department,
-          year: data.year || data.Year,
-          batch: data.batch || data.Batch,
-          skills: (data.skills || data.Skills || '').split(',').map(s => s.trim()).filter(Boolean),
-        });
+      const finalId = data.rollNumber || data.RollNumber || data.studentId;
+      const parsedEmail = data.email || data.Email;
 
-        const defaultPassword = `${student.studentId}@123`;
-        const user = await User.create({
-          name: student.name,
-          email: student.email,
-          password: defaultPassword,
-          role: 'student',
-          studentId: student.studentId,
-        });
-        student.userId = user._id;
-        await student.save();
-
-        results.success.push({ name: student.name, studentId: student.studentId, defaultPassword });
-      } catch (err) {
-        results.failed.push({ data, error: err.message });
+      if (!data.name || !parsedEmail || !data.department || !finalId) {
+        results.failed.push({ data, error: 'Missing required fields: rollNumber, name, email, department' });
+        continue;
       }
+
+      if (existingEmails.has(parsedEmail) || batchEmails.has(parsedEmail)) {
+        results.failed.push({ data, error: `Email ${parsedEmail} already exists` });
+        continue;
+      }
+      if (existingIds.has(finalId) || batchIds.has(finalId)) {
+        results.failed.push({ data, error: `Roll Number ${finalId} already exists` });
+        continue;
+      }
+
+      batchEmails.add(parsedEmail);
+      batchIds.add(finalId);
+
+      const studentObjId = new mongoose.Types.ObjectId();
+      const userObjId = new mongoose.Types.ObjectId();
+      const defaultPassword = `${finalId}@123`;
+      const parsedName = data.name || data.Name;
+
+      studentsToInsert.push({
+        _id: studentObjId,
+        studentId: finalId,
+        name: parsedName,
+        email: parsedEmail,
+        department: data.department || data.Department,
+        year: data.year || data.Year,
+        batch: data.batch || data.Batch,
+        userId: userObjId
+      });
+
+      usersToInsert.push({
+        _id: userObjId,
+        name: parsedName,
+        email: parsedEmail,
+        password: defaultPassword,
+        role: 'student',
+        studentId: finalId,
+      });
+
+      results.success.push({ name: parsedName, studentId: finalId, defaultPassword });
+    }
+
+    if (studentsToInsert.length > 0) {
+      await Student.insertMany(studentsToInsert);
+      await User.insertMany(usersToInsert);
     }
 
     fs.unlinkSync(req.file.path);
@@ -189,19 +238,19 @@ const updateSkills = async (req, res) => {
 const downloadSampleCSV = (req, res) => {
   try {
     const sampleData = [
-      { name: 'Priya Sharma', email: 'priya.sharma@college.edu', department: 'Computer Science', year: 'Second Year', batch: '2023-2027', skills: 'Python,Java,JavaScript' },
-      { name: 'Aarav Singh', email: 'aarav.singh@college.edu', department: 'Computer Science', year: 'Second Year', batch: '2023-2027', skills: 'React,Node.js,MongoDB' },
-      { name: 'Zara Khan', email: 'zara.khan@college.edu', department: 'Information Technology', year: 'First Year', batch: '2022-2026', skills: 'Python,Machine Learning,Data Science' },
-      { name: 'Rohan Patel', email: 'rohan.patel@college.edu', department: 'Computer Science', year: 'First Year', batch: '2023-2027', skills: 'C++,Java,Python' },
-      { name: 'Neha Gupta', email: 'neha.gupta@college.edu', department: 'Information Technology', year: 'Second Year', batch: '2022-2026', skills: 'Java,Spring Boot,SQL' },
+      { rollNumber: 'CS1001', name: 'Priya Sharma', email: 'priya.sharma@college.edu', department: 'Computer Science', year: 'Second Year', batch: '2023-2027' },
+      { rollNumber: 'CS1002', name: 'Aarav Singh', email: 'aarav.singh@college.edu', department: 'Computer Science', year: 'Second Year', batch: '2023-2027' },
+      { rollNumber: 'IT1001', name: 'Zara Khan', email: 'zara.khan@college.edu', department: 'Information Technology', year: 'First Year', batch: '2022-2026' },
+      { rollNumber: 'CS1003', name: 'Rohan Patel', email: 'rohan.patel@college.edu', department: 'Computer Science', year: 'First Year', batch: '2023-2027' },
+      { rollNumber: 'IT1002', name: 'Neha Gupta', email: 'neha.gupta@college.edu', department: 'Information Technology', year: 'Second Year', batch: '2022-2026' },
     ];
 
     // Create CSV header
-    const headers = ['name', 'email', 'department', 'year', 'batch', 'skills'];
+    const headers = ['rollNumber', 'name', 'email', 'department', 'year', 'batch'];
     const csvContent = [
       headers.join(','),
       ...sampleData.map(row => 
-        `"${row.name}","${row.email}","${row.department}","${row.year}","${row.batch}","${row.skills}"`
+        `"${row.rollNumber}","${row.name}","${row.email}","${row.department}","${row.year}","${row.batch}"`
       )
     ].join('\n');
 
@@ -214,4 +263,4 @@ const downloadSampleCSV = (req, res) => {
   }
 };
 
-module.exports = { getStudents, getStudent, createStudent, updateStudent, deleteStudent, bulkUpload, updateSkills, downloadSampleCSV };
+module.exports = { getStudents, getStudent, createStudent, updateStudent, deleteStudent, deleteAllStudents, bulkUpload, updateSkills, downloadSampleCSV };

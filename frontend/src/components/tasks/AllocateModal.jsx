@@ -186,16 +186,18 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
                   {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
                 </select>
               </div>
-              <div>
-                <label className="label">Subject *</label>
-                <select className="input" required value={form.subject}
-                  onChange={e => setForm({ ...form, subject: e.target.value })}>
-                  <option value="">Select subject...</option>
-                  {subjects
-                    .filter(s => s.department === form.department && s.year === form.year)
-                    .map(s => <option key={s._id} value={s.name}>{s.name} ({s.code})</option>)}
-                </select>
-              </div>
+              {type !== 'project' && (
+                <div>
+                  <label className="label">Subject *</label>
+                  <select className="input" required value={form.subject}
+                    onChange={e => setForm({ ...form, subject: e.target.value })}>
+                    <option value="">Select subject...</option>
+                    {subjects
+                      .filter(s => s.department === form.department && s.year === form.year)
+                      .map(s => <option key={s._id} value={s.name}>{s.name} ({s.code})</option>)}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="label">Due Date *</label>
                 <input className="input" type="date" required value={form.dueDate}

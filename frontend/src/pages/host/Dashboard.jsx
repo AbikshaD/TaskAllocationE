@@ -26,10 +26,6 @@ export default function HostDashboard() {
   const countCards = [
     { label: 'Active Admins', value: stats?.counts?.admins ?? 0, icon: ShieldCheck, color: 'amber', to: '/host/admins' },
     { label: 'Total Students', value: stats?.counts?.students ?? 0, icon: Users, color: 'blue' },
-    { label: 'Assignments', value: stats?.counts?.assignments ?? 0, icon: ClipboardList, color: 'violet' },
-    { label: 'Presentations', value: stats?.counts?.presentations ?? 0, icon: Monitor, color: 'emerald' },
-    { label: 'Lab Tasks', value: stats?.counts?.labTasks ?? 0, icon: FlaskConical, color: 'cyan' },
-    { label: 'Projects', value: stats?.counts?.projects ?? 0, icon: FolderKanban, color: 'rose' },
   ];
   const colorMap = {
     amber: 'bg-amber-500/20 text-amber-400', blue: 'bg-blue-500/20 text-blue-400',
@@ -52,7 +48,7 @@ export default function HostDashboard() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {countCards.map((s) => {
           const Icon = s.icon;
           const card = (

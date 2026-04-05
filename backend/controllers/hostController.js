@@ -1,10 +1,5 @@
 const User = require('../models/User');
 const Student = require('../models/Student');
-const Assignment = require('../models/Assignment');
-const Presentation = require('../models/Presentation');
-const LabTask = require('../models/LabTask');
-const Project = require('../models/Project');
-const Marks = require('../models/Marks');
 
 // ===== ADMIN MANAGEMENT =====
 const getAdmins = async (req, res) => {
@@ -76,18 +71,12 @@ const deleteAdmin = async (req, res) => {
 // ===== SYSTEM OVERVIEW =====
 const getSystemStats = async (req, res) => {
   try {
-    const [admins, students, assignments, presentations, labTasks, projects, marks] = await Promise.all([
+    const [admins, students] = await Promise.all([
       User.countDocuments({ role: 'admin', isActive: true }),
       Student.countDocuments({ isActive: true }),
-      Assignment.countDocuments(),
-      Presentation.countDocuments(),
-      LabTask.countDocuments(),
-      Project.countDocuments(),
-      Marks.countDocuments(),
     ]);
 
     const recentAdmins = await User.find({ role: 'admin' }).select('-password').sort({ createdAt: -1 }).limit(5);
-    const recentStudents = await Student.find({ isActive: true }).sort({ createdAt: -1 }).limit(5);
 
     // Department breakdown
     const deptBreakdown = await Student.aggregate([
@@ -97,9 +86,8 @@ const getSystemStats = async (req, res) => {
     ]);
 
     res.json({
-      counts: { admins, students, assignments, presentations, labTasks, projects, marks },
+      counts: { admins, students },
       recentAdmins,
-      recentStudents,
       deptBreakdown,
     });
   } catch (error) { res.status(500).json({ message: error.message }); }
