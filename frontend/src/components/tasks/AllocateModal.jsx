@@ -25,9 +25,9 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
     let startYear = d.getFullYear();
     if (d.getMonth() < 5) startYear--; 
     let offset = 0;
-    if (studyingYear === 'Second Year') offset = 1;
-    else if (studyingYear === 'Third Year') offset = 2;
-    else if (studyingYear === 'Final Year') offset = 3;
+    if (studyingYear === '2') offset = 1;
+    else if (studyingYear === '3') offset = 2;
+    else if (studyingYear === '4') offset = 3;
     const joinYear = startYear - offset;
     return `${joinYear}-${joinYear + 4}`;
   };
@@ -36,8 +36,8 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
     subject: '',
     dueDate: '',
     department: '',
-    batch: getExpectedBatch('First Year'),
-    year: 'First Year',
+    batch: getExpectedBatch('1'),
+    year: '1',
     studentsPerTopic: '',
     maxMarks: '100',
   });
@@ -183,7 +183,10 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
                   onChange={e => {
                     setForm({ ...form, year: e.target.value, subject: '', batch: getExpectedBatch(e.target.value) });
                   }}>
-                  {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
+                  <option value="1">1st Year</option>
+                  <option value="2">2nd Year</option>
+                  <option value="3">3rd Year</option>
+                  <option value="4">Final Year</option>
                 </select>
               </div>
               {type !== 'project' && (

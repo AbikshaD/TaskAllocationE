@@ -68,6 +68,33 @@ const deleteAdmin = async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
+const addAdminMapping = async (req, res) => {
+  try {
+    const { department, fromRoll, toRoll } = req.body;
+    if (!department || !fromRoll || !toRoll) return res.status(400).json({ message: 'Missing required mapping fields' });
+
+    const admin = await User.findOneAndUpdate(
+      { _id: req.params.id, role: 'admin' },
+      { $push: { mappedRanges: { department, fromRoll, toRoll } } },
+      { new: true }
+    ).select('-password');
+    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+    res.json(admin);
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
+const removeAdminMapping = async (req, res) => {
+  try {
+    const admin = await User.findOneAndUpdate(
+      { _id: req.params.id, role: 'admin' },
+      { $pull: { mappedRanges: { _id: req.params.mappingId } } },
+      { new: true }
+    ).select('-password');
+    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+    res.json(admin);
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
 // ===== SYSTEM OVERVIEW =====
 const getSystemStats = async (req, res) => {
   try {
@@ -93,4 +120,4 @@ const getSystemStats = async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
-module.exports = { getAdmins, createAdmin, updateAdmin, resetAdminPassword, deleteAdmin, getSystemStats };
+module.exports = { getAdmins, createAdmin, updateAdmin, resetAdminPassword, deleteAdmin, addAdminMapping, removeAdminMapping, getSystemStats };

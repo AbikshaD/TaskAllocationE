@@ -8,6 +8,7 @@ import {
 const hostLinks = [
   { to: '/host', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/host/admins', icon: ShieldCheck, label: 'Manage Admins' },
+  { to: '/host/students', icon: Users, label: 'Students' },
 ];
 
 const adminLinks = [

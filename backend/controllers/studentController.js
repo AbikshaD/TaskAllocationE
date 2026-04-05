@@ -55,7 +55,7 @@ const createStudent = async (req, res) => {
     if (existing) return res.status(400).json({ message: 'Email or Roll Number already exists' });
 
     // Create student
-    const student = await Student.create({ studentId: finalId, name, email, department, year: year || 'First Year', batch });
+    const student = await Student.create({ studentId: finalId, name, email, department, year: year || '1', batch });
     console.log('✅ Student created:', student._id);
 
     // Create user account for student

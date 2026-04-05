@@ -6,7 +6,7 @@ import { Plus, Search, Edit2, Trash2, X, BookOpen } from 'lucide-react';
 const DEPARTMENTS = ['Computer Science', 'Information Technology', 'Electronics & Communication', 'Electrical Engineering', 'Mechanical Engineering', 'Civil Engineering', 'Electronics', 'Mechanical', 'Civil', 'Electrical'];
 
 function SubjectModal({ subject, onClose, onSave }) {
-  const [form, setForm] = useState(subject || { name: '', code: '', department: '', year: 'First Year' });
+  const [form, setForm] = useState(subject || { name: '', code: '', department: '', year: '1' });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -55,7 +55,10 @@ function SubjectModal({ subject, onClose, onSave }) {
           <div>
             <label className="label">Year</label>
             <select className="input" required value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}>
-              {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(y => <option key={y}>{y}</option>)}
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">Final Year</option>
             </select>
           </div>
 
@@ -141,7 +144,10 @@ export default function Subjects() {
         </select>
         <select className="input w-48" value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
           <option value="">All Years</option>
-          {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(y => <option key={y}>{y}</option>)}
+          <option value="1">1st Year</option>
+          <option value="2">2nd Year</option>
+          <option value="3">3rd Year</option>
+          <option value="4">Final Year</option>
         </select>
       </div>
 
@@ -166,7 +172,11 @@ export default function Subjects() {
                 <td><span className="font-mono text-blue-400 text-xs">{s.code}</span></td>
                 <td className="font-medium text-slate-200">{s.name}</td>
                 <td className="text-slate-400 text-xs">{s.department}</td>
-                <td><span className="badge-blue">{s.year}</span></td>
+                <td>
+                  <span className="badge-blue">
+                    {s.year === '1' ? '1st Year' : s.year === '2' ? '2nd Year' : s.year === '3' ? '3rd Year' : s.year === '4' ? 'Final Year' : s.year}
+                  </span>
+                </td>
                 <td>
                   <div className="flex items-center gap-2">
                     <button onClick={() => { setEditSubject(s); setShowModal(true); }}

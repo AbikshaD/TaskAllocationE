@@ -10,7 +10,7 @@ function MarksModal({ mark, students, subjects, onClose, onSave }) {
     return d.getMonth() >= 5 ? `${y}-${String(y + 1).slice(-2)}` : `${y - 1}-${String(y).slice(-2)}`;
   };
   const [form, setForm] = useState(mark || { 
-    student: '', subject: '', subjectCode: '', year: 'First Year', 
+    student: '', subject: '', subjectCode: '', year: '1', 
     internalMarks: 0, externalMarks: 0, examType: 'internal', 
     academicYear: getCurrentAcademicYear() 
   });
@@ -60,7 +60,10 @@ function MarksModal({ mark, students, subjects, onClose, onSave }) {
               <select className="input" value={form.year} onChange={e => {
                 setForm({ ...form, year: e.target.value, subject: '', subjectCode: '' });
               }}>
-                {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">Final Year</option>
               </select>
             </div>
             <div>
@@ -210,7 +213,11 @@ export default function Marks() {
                 </td>
                 <td className="text-slate-300">{m.subject}</td>
                 <td className="text-slate-400 font-mono text-xs">{m.subjectCode}</td>
-                <td><span className="badge-blue">{m.year}</span></td>
+                <td>
+                  <span className="badge-blue">
+                    {m.year === '1' ? '1st Year' : m.year === '2' ? '2nd Year' : m.year === '3' ? '3rd Year' : m.year === '4' ? 'Final Year' : m.year}
+                  </span>
+                </td>
                 <td className="text-slate-300">{m.internalMarks}</td>
                 <td className="text-slate-300">{m.externalMarks}</td>
                 <td className="font-semibold text-white">{m.totalMarks}</td>

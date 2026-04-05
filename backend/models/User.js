@@ -11,6 +11,11 @@ const userSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // host creates admins
   department: { type: String }, // For admins - which dept they manage
   phone: { type: String },
+  mappedRanges: [{
+    department: { type: String, required: true },
+    fromRoll: { type: String, required: true },
+    toRoll: { type: String, required: true }
+  }],
 }, { timestamps: true });
 
 userSchema.pre('save', async function(next) {

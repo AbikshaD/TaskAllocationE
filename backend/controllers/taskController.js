@@ -106,6 +106,15 @@ const createAndAllocateAssignments = async (req, res) => {
     if (year) filter.year = year;
     if (batch) filter.batch = batch;
 
+    if (req.user && req.user.mappedRanges && req.user.mappedRanges.length > 0) {
+      const deptRanges = req.user.mappedRanges.filter(r => r.department === department);
+      if (deptRanges.length > 0) {
+        filter.$or = deptRanges.map(r => ({
+          studentId: { $gte: r.fromRoll, $lte: r.toRoll }
+        }));
+      }
+    }
+
     const students = await Student.find(filter);
     if (!students.length) return res.status(400).json({ message: `No students found in ${department}` });
 
@@ -215,6 +224,15 @@ const createAndAllocatePresentations = async (req, res) => {
     if (year) filter.year = year;
     if (batch) filter.batch = batch;
 
+    if (req.user && req.user.mappedRanges && req.user.mappedRanges.length > 0) {
+      const deptRanges = req.user.mappedRanges.filter(r => r.department === department);
+      if (deptRanges.length > 0) {
+        filter.$or = deptRanges.map(r => ({
+          studentId: { $gte: r.fromRoll, $lte: r.toRoll }
+        }));
+      }
+    }
+
     const students = await Student.find(filter);
     if (!students.length) return res.status(400).json({ message: `No students found in ${department}` });
 
@@ -312,6 +330,15 @@ const createAndAllocateLabTasks = async (req, res) => {
     const filter = { department, isActive: true };
     if (year) filter.year = year;
     if (batch) filter.batch = batch;
+
+    if (req.user && req.user.mappedRanges && req.user.mappedRanges.length > 0) {
+      const deptRanges = req.user.mappedRanges.filter(r => r.department === department);
+      if (deptRanges.length > 0) {
+        filter.$or = deptRanges.map(r => ({
+          studentId: { $gte: r.fromRoll, $lte: r.toRoll }
+        }));
+      }
+    }
 
     const students = await Student.find(filter);
     if (!students.length) return res.status(400).json({ message: `No students found in ${department}` });
@@ -414,6 +441,15 @@ const createAndAllocateProjects = async (req, res) => {
     const filter = { department, isActive: true };
     if (year) filter.year = year;
     if (batch) filter.batch = batch;
+
+    if (req.user && req.user.mappedRanges && req.user.mappedRanges.length > 0) {
+      const deptRanges = req.user.mappedRanges.filter(r => r.department === department);
+      if (deptRanges.length > 0) {
+        filter.$or = deptRanges.map(r => ({
+          studentId: { $gte: r.fromRoll, $lte: r.toRoll }
+        }));
+      }
+    }
 
     const students = await Student.find(filter);
     if (!students.length) return res.status(400).json({ message: `No students found in ${department}` });

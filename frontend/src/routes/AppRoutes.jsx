@@ -45,6 +45,7 @@ function ProtectedLayout({ allowedRoles, redirectTo }) {
             <>
               <Route index element={<HostDashboard />} />
               <Route path="admins" element={<ManageAdmins />} />
+              <Route path="students" element={<Students />} />
             </>
           )}
           {allowedRoles.includes('admin') && (user.role === 'admin' || user.role === 'host') && (

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
-import { Plus, Upload, Search, Edit2, Trash2, X, Download, Eye } from 'lucide-react';
+import { Plus, Upload, Search, Edit2, Trash2, X, Download, Eye, Map, Shield } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import AssignMappingModal from '../../components/host/AssignMappingModal';
 
 const DEPARTMENTS = ['Computer Science', 'Information Technology', 'Electronics', 'Mechanical', 'Civil', 'Electrical'];
 
 function StudentModal({ student, onClose, onSave }) {
-  const [form, setForm] = useState(student || { studentId: '', name: '', email: '', department: '', year: 'First Year', batch: '' });
+  const [form, setForm] = useState(student || { studentId: '', name: '', email: '', department: '', year: '1', batch: '' });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -68,7 +70,10 @@ function StudentModal({ student, onClose, onSave }) {
             <div>
               <label className="label">Year</label>
               <select className="input" required value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}>
-                {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(n => <option key={n}>{n}</option>)}
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">Final Year</option>
               </select>
             </div>
             <div>
@@ -163,7 +168,9 @@ export default function Students() {
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
+  const [showMappingMenu, setShowMappingMenu] = useState(false);
   const [editStudent, setEditStudent] = useState(null);
+  const { user } = useAuth();
 
   const fetchStudents = async () => {
     try {
@@ -248,6 +255,11 @@ export default function Students() {
               <Trash2 size={16} /> Delete All
             </button>
           )}
+          {user?.role === 'host' && (
+            <button onClick={() => setShowMappingMenu(true)} className="btn-primary bg-emerald-500 hover:bg-emerald-600 flex items-center gap-2 border-0 shadow-lg shadow-emerald-500/20">
+              <Shield size={16} /> Assign Mappings
+            </button>
+          )}
           <button onClick={downloadSampleCSV} className="btn-secondary flex items-center gap-2">
             <Download size={16} /> Download Sample
           </button>
@@ -273,7 +285,10 @@ export default function Students() {
         </select>
         <select className="input w-48" value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
           <option value="">All Years</option>
-          {['First Year', 'Second Year', 'Third Year', 'Final Year'].map(y => <option key={y}>{y}</option>)}
+          <option value="1">1st Year</option>
+          <option value="2">2nd Year</option>
+          <option value="3">3rd Year</option>
+          <option value="4">Final Year</option>
         </select>
       </div>
 
@@ -310,7 +325,11 @@ export default function Students() {
                   </div>
                 </td>
                 <td className="text-slate-400 text-xs">{s.department}</td>
-                <td><span className="badge-blue">{s.year}</span></td>
+                <td>
+                  <span className="badge-blue">
+                    {s.year === '1' ? '1st Year' : s.year === '2' ? '2nd Year' : s.year === '3' ? '3rd Year' : s.year === '4' ? 'Final Year' : s.year}
+                  </span>
+                </td>
                 <td className="text-slate-400 text-xs">{s.batch}</td>
 
                 <td>
@@ -339,6 +358,7 @@ export default function Students() {
         />
       )}
       {showBulk && <BulkUploadModal onClose={() => setShowBulk(false)} onSuccess={fetchStudents} />}
+      {showMappingMenu && <AssignMappingModal onClose={() => setShowMappingMenu(false)} />}
     </div>
   );
 }
