@@ -220,11 +220,15 @@ const bulkUpload = async (req, res) => {
         userId: userObjId
       });
 
+      // Hash the password directly here because insertMany bypasses pre-save hooks
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+
       usersToInsert.push({
         _id: userObjId,
         name: parsedName,
         email: parsedEmail,
-        password: defaultPassword,
+        password: hashedPassword,
         role: 'student',
         studentId: finalId,
       });
