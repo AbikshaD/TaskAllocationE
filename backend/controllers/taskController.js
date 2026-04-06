@@ -415,6 +415,59 @@ const getMyProjects = async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
+const createReviewProgress = async (req, res) => {
+  try {
+    const { startDate, totalDuration } = req.body;
+    if (!startDate || !totalDuration) {
+      return res.status(400).json({ message: 'Start date and total duration are required' });
+    }
+
+    const project = await Project.findById(req.params.id);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    // Calculate phase due dates
+    const start = new Date(startDate);
+    const phaseInterval = Math.ceil(totalDuration / 3);
+
+    const phases = [
+      { phaseNumber: 1, dueDate: new Date(start.getTime() + phaseInterval * 24 * 60 * 60 * 1000) },
+      { phaseNumber: 2, dueDate: new Date(start.getTime() + phaseInterval * 2 * 24 * 60 * 60 * 1000) },
+      { phaseNumber: 3, dueDate: new Date(start.getTime() + totalDuration * 24 * 60 * 60 * 1000) },
+    ];
+
+    project.reviewProgress = {
+      startDate: start,
+      totalDuration,
+      phases,
+      createdAt: new Date(),
+    };
+
+    await project.save();
+    res.json({ message: 'Review progress created', project });
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
+const updatePhaseStatus = async (req, res) => {
+  try {
+    const { phaseNumber } = req.params;
+    const { status, feedback } = req.body;
+
+    const project = await Project.findById(req.params.id);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    if (!project.reviewProgress) return res.status(404).json({ message: 'Review progress not set' });
+
+    const phase = project.reviewProgress.phases.find(p => p.phaseNumber === Number(phaseNumber));
+    if (!phase) return res.status(404).json({ message: 'Phase not found' });
+
+    phase.status = status;
+    if (feedback) phase.feedback = feedback;
+    if (status === 'completed') phase.completedAt = new Date();
+
+    await project.save();
+    res.json({ message: `Phase ${phaseNumber} updated`, project });
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
 const chooseProject = async (req, res) => {
   try {
     const { chosenSkills } = req.body;
@@ -484,6 +537,6 @@ const downloadTopicsTemplate = (req, res) => {
 module.exports = {
   getAssignments, createAndAllocateAssignments, submitAssignment, approveAssignment, getMyAssignments, deleteAssignment,
   getPresentations, createAndAllocatePresentations, submitPresentation, approvePresentation, getMyPresentations,
-  getProjects, createAndAllocateProjects, approveProject, getMyProjects, chooseProject,
+  getProjects, createAndAllocateProjects, approveProject, getMyProjects, chooseProject, createReviewProgress, updatePhaseStatus,
   downloadTopicsTemplate,
 };

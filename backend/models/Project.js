@@ -20,6 +20,20 @@ const projectSchema = new mongoose.Schema({
   department: { type: String },
   batch: { type: String },
   year: { type: String },
+  reviewProgress: {
+    startDate: { type: Date },
+    totalDuration: { type: Number }, // in days
+    phases: [
+      {
+        phaseNumber: { type: Number, enum: [1, 2, 3] },
+        dueDate: { type: Date },
+        status: { type: String, enum: ['pending', 'completed'], default: 'pending' },
+        feedback: { type: String },
+        completedAt: { type: Date },
+      }
+    ],
+    createdAt: { type: Date },
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Project', projectSchema);

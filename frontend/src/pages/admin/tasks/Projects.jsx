@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import api from '../../../api/axios';
 import toast from 'react-hot-toast';
 import AllocateModal from '../../../components/tasks/AllocateModal';
-import { FolderKanban, Eye, CheckCircle, XCircle, X } from 'lucide-react';
+import ReviewProgressModal from '../../../components/tasks/ReviewProgressModal';
+import { FolderKanban, Eye, CheckCircle, XCircle, X, Clock } from 'lucide-react';
 
 const statusBadge = { allocated:'badge-yellow', submitted:'badge-blue', approved:'badge-green', rejected:'badge-red', available:'badge-yellow' };
 
@@ -55,6 +56,7 @@ export default function AdminProjects() {
   const [loading, setLoading] = useState(true);
   const [showAllocate, setShowAllocate] = useState(false);
   const [reviewing, setReviewing] = useState(null);
+  const [reviewingProgress, setReviewingProgress] = useState(null);
   const [filters, setFilters] = useState({ status: 'all', department: '', year: '', search: '' });
 
   const fetch = async () => {
@@ -145,7 +147,13 @@ export default function AdminProjects() {
                   <td>
                     {a.status === 'submitted' && <button onClick={() => setReviewing(a)} className="flex items-center gap-1 text-xs text-blue-400 bg-blue-400/10 px-3 py-1.5 rounded-lg"><Eye size={13}/> Review</button>}
                     {a.status === 'approved' && <span className="text-xs text-emerald-400">✓</span>}
-                    {a.status === 'allocated' && <span className="text-xs text-slate-500">In progress</span>}
+                    {a.status === 'allocated' && (
+                      <button 
+                        onClick={() => setReviewingProgress(a)} 
+                        className="flex items-center gap-1 text-xs text-purple-400 bg-purple-400/10 px-3 py-1.5 rounded-lg hover:bg-purple-400/20">
+                        <Clock size={13}/> Review Progress
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -155,6 +163,7 @@ export default function AdminProjects() {
 
       {showAllocate && <AllocateModal type="project" onClose={() => setShowAllocate(false)} onSuccess={fetch} />}
       {reviewing && <ReviewModal item={reviewing} onClose={() => setReviewing(null)} onApprove={handleApprove} />}
+      {reviewingProgress && <ReviewProgressModal project={reviewingProgress} onClose={() => setReviewingProgress(null)} onSuccess={fetch} />}
     </div>
   );
 }

@@ -5,7 +5,7 @@ const upload = require('../middleware/upload');
 const {
   getAssignments, createAndAllocateAssignments, submitAssignment, approveAssignment, getMyAssignments, deleteAssignment,
   getPresentations, createAndAllocatePresentations, submitPresentation, approvePresentation, getMyPresentations,
-  getProjects, createAndAllocateProjects, approveProject, getMyProjects, chooseProject,
+  getProjects, createAndAllocateProjects, approveProject, getMyProjects, chooseProject, createReviewProgress, updatePhaseStatus,
   downloadTopicsTemplate,
 } = require('../controllers/taskController');
 
@@ -33,6 +33,8 @@ router.post('/presentations/:id/submit', studentOnly, upload.single('file'), sub
 router.get('/projects', adminOnly, getProjects);
 router.post('/projects/allocate', adminOnly, upload.single('topicsFile'), createAndAllocateProjects);
 router.put('/projects/:id/approve', adminOnly, approveProject);
+router.post('/projects/:id/review-progress', adminOnly, createReviewProgress);
+router.put('/projects/:id/review-progress/:phaseNumber', adminOnly, updatePhaseStatus);
 router.get('/projects/my', studentOnly, getMyProjects);
 router.post('/projects/choose', studentOnly, chooseProject);
 
