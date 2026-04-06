@@ -16,14 +16,13 @@ import Marks from '../pages/admin/Marks';
 import Subjects from '../pages/admin/Subjects';
 import AdminAssignments from '../pages/admin/tasks/Assignments';
 import AdminPresentations from '../pages/admin/tasks/Presentations';
-import AdminLabTasks from '../pages/admin/tasks/LabTasks';
 import AdminProjects from '../pages/admin/tasks/Projects';
 
 // Student pages
 import StudentDashboard from '../pages/student/Dashboard';
 import StudentMarks from '../pages/student/Marks';
 import MyAssignments from '../pages/student/tasks/MyAssignment';
-import { MyPresentations, MyLabTasks, MyProjects } from '../pages/student/tasks/StudentTasks';
+import { MyPresentations, MyProjects } from '../pages/student/tasks/StudentTasks';
 
 const Spinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-slate-950">
@@ -56,7 +55,6 @@ function ProtectedLayout({ allowedRoles, redirectTo }) {
               <Route path="subjects" element={<Subjects />} />
               <Route path="tasks/assignments" element={<AdminAssignments />} />
               <Route path="tasks/presentations" element={<AdminPresentations />} />
-              <Route path="tasks/lab-tasks" element={<AdminLabTasks />} />
               <Route path="tasks/projects" element={<AdminProjects />} />
             </>
           )}
@@ -66,7 +64,6 @@ function ProtectedLayout({ allowedRoles, redirectTo }) {
               <Route path="marks" element={<StudentMarks />} />
               <Route path="assignments" element={<MyAssignments />} />
               <Route path="presentations" element={<MyPresentations />} />
-              <Route path="lab-tasks" element={<MyLabTasks />} />
               <Route path="projects" element={<MyProjects />} />
             </>
           )}

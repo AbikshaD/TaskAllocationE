@@ -18,7 +18,7 @@ const DEPARTMENTS = [
  *   onSuccess: fn
  */
 export default function AllocateModal({ type, onClose, onSuccess }) {
-  const isLab = type === 'lab';
+  // Removed by request
 
   const getExpectedBatch = (studyingYear) => {
     const d = new Date();
@@ -68,15 +68,14 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
     assignment: '/tasks/assignments/allocate',
     presentation: '/tasks/presentations/allocate',
     project: '/tasks/projects/allocate',
-    lab: '/tasks/lab-tasks/allocate',
   }[type];
 
   const label = {
     assignment: 'Assignments', presentation: 'Presentations',
-    project: 'Projects', lab: 'Lab Tasks',
+    project: 'Projects',
   }[type];
 
-  const topicLabel = isLab ? 'Lab Tasks' : 'Topics';
+  const topicLabel = 'Topics';
 
   const addTopic = () => setTopics(t => [...t, { title: '', description: '' }]);
   const removeTopic = (i) => setTopics(t => t.filter((_, idx) => idx !== i));
@@ -105,7 +104,7 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
         fd.append('topicsFile', file);
       } else {
         // send as JSON string for manual
-        const key = isLab ? 'tasks' : 'topics';
+        const key = 'topics';
         const processedTopics = topics.filter(t => t.title.trim()).map(t => ({
           ...t,
           requiredSkills: t.requiredSkills ? t.requiredSkills.split(',').map(s => s.trim()).filter(s => s) : []
@@ -249,12 +248,10 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
           </div>
 
           {/* Allocation info box */}
-          <div className={`rounded-xl p-3 border text-xs ${isLab ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300' : 'bg-blue-500/10 border-blue-500/30 text-blue-300'}`}>
-            {isLab
-              ? '🧪 Lab tasks will be allocated to EVERY student in the selected department. Each student gets all lab tasks.'
-              : form.isSkillBased 
-                ? '🎯 Projects will be created as "Available". Students will choose their skill set and get matched automatically.'
-                : `📋 Each topic will be assigned to ${form.studentsPerTopic || 'N'} students (auto-calculated if left blank). Students are shuffled randomly within the department.`}
+          <div className="rounded-xl p-3 border text-xs bg-blue-500/10 border-blue-500/30 text-blue-300">
+            {form.isSkillBased 
+              ? '🎯 Projects will be created as "Available". Students will choose their skill set and get matched automatically.'
+              : `📋 Each topic will be assigned to ${form.studentsPerTopic || 'N'} students (auto-calculated if left blank). Students are shuffled randomly within the department.`}
           </div>
 
           {/* Section 2: Topics input */}
@@ -301,7 +298,7 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
                 {topics.map((topic, i) => (
                   <div key={i} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-slate-500 font-medium">{isLab ? 'Lab Task' : 'Topic'} {i + 1}</span>
+                      <span className="text-xs text-slate-500 font-medium">Topic {i + 1}</span>
                       {topics.length > 1 && (
                         <button type="button" onClick={() => removeTopic(i)} className="text-red-400 hover:text-red-300">
                           <Trash2 size={14} />
@@ -310,7 +307,7 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
                     </div>
                     <input className="input mb-2" required value={topic.title}
                       onChange={e => updateTopic(i, 'title', e.target.value)}
-                      placeholder={isLab ? `Lab ${i + 1}: Experiment title` : `Topic ${i + 1} title`} />
+                      placeholder={`Topic ${i + 1} title`} />
                     <textarea className="input resize-none mb-2" rows={2} value={topic.description}
                       onChange={e => updateTopic(i, 'description', e.target.value)}
                       placeholder="Description / objective (optional)" />

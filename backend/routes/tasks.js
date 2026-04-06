@@ -5,7 +5,6 @@ const upload = require('../middleware/upload');
 const {
   getAssignments, createAndAllocateAssignments, submitAssignment, approveAssignment, getMyAssignments, deleteAssignment,
   getPresentations, createAndAllocatePresentations, submitPresentation, approvePresentation, getMyPresentations,
-  getLabTasks, createAndAllocateLabTasks, submitLabTask, approveLabTask, getMyLabTasks,
   getProjects, createAndAllocateProjects, approveProject, getMyProjects, chooseProject,
   downloadTopicsTemplate,
 } = require('../controllers/taskController');
@@ -28,11 +27,7 @@ router.get('/presentations/my', studentOnly, getMyPresentations);
 router.post('/presentations/:id/submit', studentOnly, upload.single('file'), submitPresentation);
 
 // === LAB TASKS ===
-router.get('/lab-tasks', adminOnly, getLabTasks);
-router.post('/lab-tasks/allocate', adminOnly, upload.single('topicsFile'), createAndAllocateLabTasks);
-router.put('/lab-tasks/:id/approve', adminOnly, approveLabTask);
-router.get('/lab-tasks/my', studentOnly, getMyLabTasks);
-router.post('/lab-tasks/:id/submit', studentOnly, upload.single('file'), submitLabTask);
+// Removed by request
 
 // === PROJECTS ===
 router.get('/projects', adminOnly, getProjects);

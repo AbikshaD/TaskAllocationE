@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { ClipboardList, Monitor, FlaskConical, FolderKanban, Award, TrendingUp } from 'lucide-react';
+import { ClipboardList, Monitor, FolderKanban, Award, TrendingUp } from 'lucide-react';
 
 const gradePoints = { O: 10, 'A+': 9, A: 8, 'B+': 7, B: 6, C: 5, F: 0 };
 
@@ -12,7 +12,6 @@ export default function StudentDashboard() {
   const [marks, setMarks] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [presentations, setPresentations] = useState([]);
-  const [labTasks, setLabTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,13 +22,11 @@ export default function StudentDashboard() {
           api.get('/marks/my'),
           api.get('/tasks/assignments/my'),
           api.get('/tasks/presentations/my'),
-          api.get('/tasks/lab-tasks/my'),
           api.get('/tasks/projects/my'),
         ]);
         setMarks(mRes.data);
         setAssignments(aRes.data);
         setPresentations(pRes.data);
-        setLabTasks(lRes.data);
         setProjects(prRes.data);
       } catch (err) { console.error(err); }
       finally { setLoading(false); }
@@ -54,7 +51,6 @@ export default function StudentDashboard() {
   const taskSummary = [
     { label: 'Assignments', total: assignments.length, done: assignments.filter(a => a.status === 'approved').length, icon: ClipboardList, color: 'blue', to: '/student/assignments' },
     { label: 'Presentations', total: presentations.length, done: presentations.filter(a => a.status === 'approved').length, icon: Monitor, color: 'emerald', to: '/student/presentations' },
-    { label: 'Lab Tasks', total: labTasks.length, done: labTasks.filter(a => a.status === 'approved').length, icon: FlaskConical, color: 'cyan', to: '/student/lab-tasks' },
     { label: 'Projects', total: projects.length, done: projects.filter(a => a.status === 'approved').length, icon: FolderKanban, color: 'rose', to: '/student/projects' },
   ];
 

@@ -1,6 +1,5 @@
 const Assignment = require('../models/Assignment');
 const Presentation = require('../models/Presentation');
-const LabTask = require('../models/LabTask');
 const Project = require('../models/Project');
 const Student = require('../models/Student');
 const XLSX = require('xlsx');
@@ -297,116 +296,8 @@ const getMyPresentations = async (req, res) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// LAB TASKS — allocated to entire department
-// ═══════════════════════════════════════════════════════════════════════════════
+// Lab Tasks removed by request
 
-const getLabTasks = async (req, res) => {
-  try {
-    const { department, year, batch } = req.query;
-    const filter = {};
-    if (department) filter.department = department;
-    if (year) filter.year = year;
-    if (batch) filter.batch = batch;
-    const tasks = await LabTask.find(filter)
-      .populate('allocatedTo', 'name studentId rollNumber department')
-      .sort({ labNumber: 1, createdAt: -1 });
-    res.json(tasks);
-  } catch (error) { res.status(500).json({ message: error.message }); }
-};
-
-const createAndAllocateLabTasks = async (req, res) => {
-  try {
-    // tasks list from body or file
-    let taskList = [];
-    if (req.file) {
-      taskList = parseTopicsFile(req.file.path);
-      fs.unlinkSync(req.file.path);
-    } else {
-      taskList = req.body.tasks || [];
-      if (typeof taskList === 'string') taskList = JSON.parse(taskList);
-    }
-    if (!taskList.length) return res.status(400).json({ message: 'No lab tasks provided' });
-
-    const { subject, dueDate, batch, year, department, maxMarks } = req.body;
-    if (!department) return res.status(400).json({ message: 'Department is required' });
-
-    // Lab tasks → ALL students in the department (optionally filtered by year/batch)
-    const filter = { department, isActive: true };
-    if (year) filter.year = year;
-    if (batch) filter.batch = batch;
-
-    if (req.user && req.user.mappedRanges && req.user.mappedRanges.length > 0) {
-      const deptRanges = req.user.mappedRanges.filter(r => r.department === department);
-      if (deptRanges.length > 0) {
-        filter.$or = deptRanges.map(r => ({
-          studentId: { $gte: r.fromRoll, $lte: r.toRoll }
-        }));
-      }
-    }
-
-    const students = await Student.find(filter);
-    if (!students.length) return res.status(400).json({ message: `No students found in ${department}` });
-
-    const docs = [];
-    taskList.forEach((taskData, idx) => {
-      students.forEach(student => {
-        docs.push({
-          title: taskData.title,
-          description: taskData.description || '',
-          labNumber: taskData.labNumber || (idx + 1),
-          subject, dueDate, batch, department,
-          year: year || undefined,
-          allocatedTo: student._id,
-          maxMarks: maxMarks ? Number(maxMarks) : 100,
-          createdBy: req.user._id,
-        });
-      });
-    });
-
-    const created = await LabTask.insertMany(docs);
-    res.status(201).json({
-      message: `${taskList.length} lab tasks allocated to all ${students.length} students in ${department}`,
-      count: created.length,
-      tasks: taskList.length,
-      students: students.length,
-    });
-  } catch (error) { res.status(500).json({ message: error.message }); }
-};
-
-const submitLabTask = async (req, res) => {
-  try {
-    const student = await Student.findOne({ userId: req.user._id });
-    const task = await LabTask.findOne({ _id: req.params.id, allocatedTo: student._id });
-    if (!task) return res.status(404).json({ message: 'Lab task not found' });
-    task.submittedFile = req.file ? req.file.filename : null;
-    task.submissionText = req.body.submissionText || '';
-    task.submittedAt = new Date();
-    task.status = 'submitted';
-    await task.save();
-    res.json({ message: 'Lab task submitted', task });
-  } catch (error) { res.status(500).json({ message: error.message }); }
-};
-
-const approveLabTask = async (req, res) => {
-  try {
-    const { status, adminFeedback, obtainedMarks } = req.body;
-    const task = await LabTask.findByIdAndUpdate(
-      req.params.id,
-      { status, adminFeedback, obtainedMarks, approvedAt: status === 'approved' ? new Date() : null },
-      { new: true }
-    ).populate('allocatedTo', 'name studentId');
-    res.json(task);
-  } catch (error) { res.status(500).json({ message: error.message }); }
-};
-
-const getMyLabTasks = async (req, res) => {
-  try {
-    const student = await Student.findOne({ userId: req.user._id });
-    if (!student) return res.status(404).json({ message: 'Student not found' });
-    const tasks = await LabTask.find({ allocatedTo: student._id }).sort({ labNumber: 1 });
-    res.json(tasks);
-  } catch (error) { res.status(500).json({ message: error.message }); }
-};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PROJECTS
@@ -593,7 +484,6 @@ const downloadTopicsTemplate = (req, res) => {
 module.exports = {
   getAssignments, createAndAllocateAssignments, submitAssignment, approveAssignment, getMyAssignments, deleteAssignment,
   getPresentations, createAndAllocatePresentations, submitPresentation, approvePresentation, getMyPresentations,
-  getLabTasks, createAndAllocateLabTasks, submitLabTask, approveLabTask, getMyLabTasks,
   getProjects, createAndAllocateProjects, approveProject, getMyProjects, chooseProject,
   downloadTopicsTemplate,
 };

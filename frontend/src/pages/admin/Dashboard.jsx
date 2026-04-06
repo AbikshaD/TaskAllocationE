@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
-import { Users, BookOpen, ClipboardList, Monitor, FlaskConical, FolderKanban, TrendingUp, AlertCircle } from 'lucide-react';
+import { Users, BookOpen, ClipboardList, Monitor, FolderKanban, TrendingUp, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({ students: 0, marks: 0, assignments: 0, presentations: 0, labTasks: 0, projects: 0 });
+  const [stats, setStats] = useState({ students: 0, marks: 0, assignments: 0, presentations: 0, projects: 0 });
   const [recentStudents, setRecentStudents] = useState([]);
   const [gradeData, setGradeData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,12 +13,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [studRes, marksRes, assignRes, presRes, labRes, projRes] = await Promise.all([
+        const [studRes, marksRes, assignRes, presRes, projRes] = await Promise.all([
           api.get('/students'),
           api.get('/marks'),
           api.get('/tasks/assignments'),
           api.get('/tasks/presentations'),
-          api.get('/tasks/lab-tasks'),
           api.get('/tasks/projects'),
         ]);
         setStats({
@@ -26,7 +25,6 @@ export default function AdminDashboard() {
           marks: marksRes.data.length,
           assignments: assignRes.data.length,
           presentations: presRes.data.length,
-          labTasks: labRes.data.length,
           projects: projRes.data.length,
         });
         setRecentStudents(studRes.data.slice(0, 5));
@@ -52,7 +50,6 @@ export default function AdminDashboard() {
     { label: 'Marks Entries', value: stats.marks, icon: BookOpen, color: 'violet', to: '/admin/marks' },
     { label: 'Assignments', value: stats.assignments, icon: ClipboardList, color: 'amber', to: '/admin/tasks/assignments' },
     { label: 'Presentations', value: stats.presentations, icon: Monitor, color: 'emerald', to: '/admin/tasks/presentations' },
-    { label: 'Lab Tasks', value: stats.labTasks, icon: FlaskConical, color: 'cyan', to: '/admin/tasks/lab-tasks' },
     { label: 'Projects', value: stats.projects, icon: FolderKanban, color: 'rose', to: '/admin/tasks/projects' },
   ];
 

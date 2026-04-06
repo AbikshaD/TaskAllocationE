@@ -105,51 +105,8 @@ export function MyPresentations() {
   );
 }
 
-export function MyLabTasks() {
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    api.get('/tasks/lab-tasks/my').then(r => setTasks(r.data)).catch(() => toast.error('Failed')).finally(() => setLoading(false));
-  }, []);
+// MyLabTasks removed by request
 
-  if (loading) return <div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
-
-  return (
-    <div className="flex-1 p-8 overflow-auto">
-      <div className="mb-8"><h1 className="text-2xl font-bold text-white">My Lab Tasks</h1><p className="text-slate-400 mt-1">{tasks.length} lab tasks assigned</p></div>
-      {tasks.length === 0 ? (
-        <div className="card text-center py-16"><p className="text-slate-400">No lab tasks assigned yet</p></div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tasks.map(t => (
-            <div key={t._id} className={`card border ${t.status === 'approved' ? 'border-emerald-500/30' : 'border-slate-800'}`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="badge-cyan">Lab {t.labNumber}</span>
-                <span className={statusBadge[t.status] || 'badge-yellow'}>{t.status}</span>
-              </div>
-              <h3 className="font-semibold text-white mb-1">{t.title}</h3>
-              <p className="text-xs text-slate-400">{t.subject}</p>
-              {t.description && <p className="text-xs text-slate-400 mt-2 line-clamp-2">{t.description}</p>}
-              <div className="mt-4 pt-3 border-t border-slate-800">
-                <p className="text-xs text-slate-500">Due: {new Date(t.dueDate).toLocaleDateString()}</p>
-                {t.status === 'approved' && (
-                  <>
-                    {t.obtainedMarks && <p className="text-xs text-emerald-400 font-medium mt-1">Score: {t.obtainedMarks}/{t.maxMarks}</p>}
-                    {t.adminFeedback && <p className="text-xs text-slate-300 mt-1 italic">"{t.adminFeedback}"</p>}
-                    <p className="text-xs text-emerald-400 mt-1">✓ Approved by faculty</p>
-                  </>
-                )}
-                {t.status === 'allocated' && (
-                  <p className="text-xs text-amber-400 mt-1">⏳ Complete in lab — faculty will approve</p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 const SKILLS = ['Python', 'Java', 'JavaScript', 'React', 'Node.js', 'MongoDB', 'SQL', 'Machine Learning', 'Data Science', 'C++', 'PHP', 'Django', 'Spring Boot', 'Docker', 'Git'];
 
