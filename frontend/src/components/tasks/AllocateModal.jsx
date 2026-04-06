@@ -221,14 +221,12 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
                 <input className="input" type="number" min="1" value={form.maxMarks}
                   onChange={e => setForm({ ...form, maxMarks: e.target.value })} />
               </div>
-              {!isLab && (
-                <div>
-                  <label className="label">Students per Topic</label>
-                  <input className="input" type="number" min="1" placeholder="Auto (even split)"
-                    value={form.studentsPerTopic}
-                    onChange={e => setForm({ ...form, studentsPerTopic: e.target.value })} />
-                </div>
-              )}
+              <div>
+                <label className="label">Students per Topic</label>
+                <input className="input" type="number" min="1" placeholder="Auto (even split)"
+                  value={form.studentsPerTopic}
+                  onChange={e => setForm({ ...form, studentsPerTopic: e.target.value })} />
+              </div>
               {type === 'project' && (
                 <div className="col-span-2">
                   <label className="flex items-center gap-2 cursor-pointer group">
@@ -321,7 +319,7 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
                 ))}
                 <button type="button" onClick={addTopic}
                   className="w-full border-2 border-dashed border-slate-700 rounded-xl py-3 text-sm text-slate-500 hover:text-slate-300 hover:border-slate-600 transition-colors flex items-center justify-center gap-2">
-                  <Plus size={15} /> Add {isLab ? 'Lab Task' : 'Topic'}
+                  <Plus size={15} /> Add Topic
                 </button>
               </div>
             )}
