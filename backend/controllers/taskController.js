@@ -61,10 +61,14 @@ function parseTopicsFile(filePath) {
     const ws = wb.Sheets[wb.SheetNames[0]];
     rows = XLSX.utils.sheet_to_json(ws);
   }
-  return rows.map(r => ({
-    title: r.title || r.Title || r.TITLE || '',
-    description: r.description || r.Description || r.DESCRIPTION || '',
-  })).filter(r => r.title);
+  return rows.map(r => {
+    const skillsStr = r.requiredSkills || r.RequiredSkills || r.skills || r.Skills || '';
+    return {
+      title: r.title || r.Title || r.TITLE || '',
+      description: r.description || r.Description || r.DESCRIPTION || '',
+      requiredSkills: skillsStr ? skillsStr.split(',').map(s => s.trim()).filter(s => s) : []
+    };
+  }).filter(r => r.title);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -435,12 +439,32 @@ const createAndAllocateProjects = async (req, res) => {
     }
     if (!topics.length) return res.status(400).json({ message: 'No project topics provided' });
 
-    const { subject, dueDate, batch, year, department, studentsPerTopic, maxMarks } = req.body;
+    const { subject, dueDate, batch, year, department, studentsPerTopic, maxMarks, isSkillBased } = req.body;
     if (!department) return res.status(400).json({ message: 'Department is required' });
 
     const filter = { department, isActive: true };
     if (year) filter.year = year;
     if (batch) filter.batch = batch;
+
+    if (isSkillBased === 'true' || isSkillBased === true) {
+      // Skill-based mode: create all projects as available
+      const created = await Project.insertMany(topics.map(t => ({
+        title: t.title,
+        description: t.description || '',
+        requiredSkills: t.requiredSkills || [], 
+        subject: subject || '',
+        dueDate, batch, department,
+        year: year || undefined,
+        maxMarks: maxMarks ? Number(maxMarks) : 100,
+        status: 'available',
+        createdBy: req.user._id,
+      })));
+
+      return res.status(201).json({
+        message: `${created.length} projects created. Students can now choose based on their skill sets.`,
+        count: created.length,
+      });
+    }
 
     if (req.user && req.user.mappedRanges && req.user.mappedRanges.length > 0) {
       const deptRanges = req.user.mappedRanges.filter(r => r.department === department);
@@ -500,6 +524,55 @@ const getMyProjects = async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
+const chooseProject = async (req, res) => {
+  try {
+    const { chosenSkills } = req.body;
+    if (!chosenSkills || !chosenSkills.length) return res.status(400).json({ message: 'No skills selected' });
+
+    const student = await Student.findOne({ userId: req.user._id });
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    // Check if student already has a project
+    const existing = await Project.findOne({ allocatedTo: student._id });
+    if (existing) return res.status(400).json({ message: 'You already have a project allocated' });
+
+    // Find all available projects that matching the student's context
+    const availableProjects = await Project.find({
+      status: 'available',
+      department: student.department,
+      year: student.year,
+      batch: student.batch
+    });
+
+    if (!availableProjects.length) return res.status(404).json({ message: `No available projects found for ${student.department} Year ${student.year}` });
+
+    // Matching: Pick the first project which has AT LEAST ONE of the chosen skills
+    let match = null;
+    for (const p of availableProjects) {
+      if (!p.requiredSkills || !p.requiredSkills.length) {
+        // If a project has no required skills, it's a general project
+        match = p;
+        break;
+      }
+      const hasMatch = p.requiredSkills.some(s => chosenSkills.some(cs => cs.toLowerCase() === s.toLowerCase()));
+      if (hasMatch) {
+        match = p;
+        break;
+      }
+    }
+
+    if (!match) return res.status(404).json({ message: 'No projects match your current skill selection. Try different skills!' });
+
+    // Allocate
+    match.status = 'allocated';
+    match.allocatedTo = student._id;
+    match.studentChosenSkills = chosenSkills;
+    await match.save();
+
+    res.json({ message: 'Match found!', project: match });
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
 // Download sample Excel template for bulk topic upload
 const downloadTopicsTemplate = (req, res) => {
   const wb = XLSX.utils.book_new();
@@ -521,6 +594,6 @@ module.exports = {
   getAssignments, createAndAllocateAssignments, submitAssignment, approveAssignment, getMyAssignments, deleteAssignment,
   getPresentations, createAndAllocatePresentations, submitPresentation, approvePresentation, getMyPresentations,
   getLabTasks, createAndAllocateLabTasks, submitLabTask, approveLabTask, getMyLabTasks,
-  getProjects, createAndAllocateProjects, approveProject, getMyProjects,
+  getProjects, createAndAllocateProjects, approveProject, getMyProjects, chooseProject,
   downloadTopicsTemplate,
 };

@@ -40,6 +40,7 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
     year: '1',
     studentsPerTopic: '',
     maxMarks: '100',
+    isSkillBased: false,
   });
 
   // Topic entry: manual list OR file upload
@@ -105,7 +106,11 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
       } else {
         // send as JSON string for manual
         const key = isLab ? 'tasks' : 'topics';
-        fd.append(key, JSON.stringify(topics.filter(t => t.title.trim())));
+        const processedTopics = topics.filter(t => t.title.trim()).map(t => ({
+          ...t,
+          requiredSkills: t.requiredSkills ? t.requiredSkills.split(',').map(s => s.trim()).filter(s => s) : []
+        }));
+        fd.append(key, JSON.stringify(processedTopics));
       }
 
       const res = await api.post(endpoint, fd, {
@@ -225,6 +230,21 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
                     onChange={e => setForm({ ...form, studentsPerTopic: e.target.value })} />
                 </div>
               )}
+              {type === 'project' && (
+                <div className="col-span-2">
+                  <label className="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-blue-500/20"
+                      checked={form.isSkillBased}
+                      onChange={e => setForm({ ...form, isSkillBased: e.target.checked })} />
+                    <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
+                      Allow Student Selection (Skill-based matching)
+                    </span>
+                  </label>
+                  <p className="text-[10px] text-slate-500 mt-1 ml-6">
+                    If enabled, projects will not be auto-allocated. Students must pick their skills to find a match.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -232,7 +252,9 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
           <div className={`rounded-xl p-3 border text-xs ${isLab ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300' : 'bg-blue-500/10 border-blue-500/30 text-blue-300'}`}>
             {isLab
               ? '🧪 Lab tasks will be allocated to EVERY student in the selected department. Each student gets all lab tasks.'
-              : `📋 Each topic will be assigned to ${form.studentsPerTopic || 'N'} students (auto-calculated if left blank). Students are shuffled randomly within the department.`}
+              : form.isSkillBased 
+                ? '🎯 Projects will be created as "Available". Students will choose their skill set and get matched automatically.'
+                : `📋 Each topic will be assigned to ${form.studentsPerTopic || 'N'} students (auto-calculated if left blank). Students are shuffled randomly within the department.`}
           </div>
 
           {/* Section 2: Topics input */}
@@ -289,9 +311,15 @@ export default function AllocateModal({ type, onClose, onSuccess }) {
                     <input className="input mb-2" required value={topic.title}
                       onChange={e => updateTopic(i, 'title', e.target.value)}
                       placeholder={isLab ? `Lab ${i + 1}: Experiment title` : `Topic ${i + 1} title`} />
-                    <textarea className="input resize-none" rows={2} value={topic.description}
+                    <textarea className="input resize-none mb-2" rows={2} value={topic.description}
                       onChange={e => updateTopic(i, 'description', e.target.value)}
                       placeholder="Description / objective (optional)" />
+                    {type === 'project' && form.isSkillBased && (
+                      <input className="input text-xs"
+                        value={topic.requiredSkills || ''}
+                        onChange={e => updateTopic(i, 'requiredSkills', e.target.value)}
+                        placeholder="Required Skills (e.g. React, Node, Python)" />
+                    )}
                   </div>
                 ))}
                 <button type="button" onClick={addTopic}

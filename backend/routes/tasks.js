@@ -6,7 +6,7 @@ const {
   getAssignments, createAndAllocateAssignments, submitAssignment, approveAssignment, getMyAssignments, deleteAssignment,
   getPresentations, createAndAllocatePresentations, submitPresentation, approvePresentation, getMyPresentations,
   getLabTasks, createAndAllocateLabTasks, submitLabTask, approveLabTask, getMyLabTasks,
-  getProjects, createAndAllocateProjects, approveProject, getMyProjects,
+  getProjects, createAndAllocateProjects, approveProject, getMyProjects, chooseProject,
   downloadTopicsTemplate,
 } = require('../controllers/taskController');
 
@@ -39,6 +39,7 @@ router.get('/projects', adminOnly, getProjects);
 router.post('/projects/allocate', adminOnly, upload.single('topicsFile'), createAndAllocateProjects);
 router.put('/projects/:id/approve', adminOnly, approveProject);
 router.get('/projects/my', studentOnly, getMyProjects);
+router.post('/projects/choose', studentOnly, chooseProject);
 
 // Template download
 router.get('/template/topics', protect, downloadTopicsTemplate);
