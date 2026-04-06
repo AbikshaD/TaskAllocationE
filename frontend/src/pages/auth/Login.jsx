@@ -142,9 +142,6 @@ export default function Login() {
                 <input type="password" required className="input pl-10" placeholder="••••••••"
                   value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
               </div>
-              {role === 'student' && (
-                <p className="text-xs text-slate-500 mt-2">Default password: {'<StudentID>@123'}</p>
-              )}
             </div>
 
             <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-base mt-2">
@@ -156,12 +153,7 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-8 p-4 bg-slate-800/40 rounded-xl border border-slate-700/50 space-y-1">
-            <p className="text-xs text-slate-500 font-medium mb-2">Demo Credentials</p>
-            <p className="text-xs text-slate-400">👑 Host: host@college.edu / Host@123</p>
-            <p className="text-xs text-slate-400">🛡️ Admin: admin@college.edu / Admin@123</p>
-            <p className="text-xs text-slate-400">🎓 Student: STU0001 / STU0001@123</p>
-          </div>
+
         </div>
       </div>
     </div>

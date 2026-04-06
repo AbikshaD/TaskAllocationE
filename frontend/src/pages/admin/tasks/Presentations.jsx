@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../../api/axios';
 import toast from 'react-hot-toast';
 import AllocateModal from '../../../components/tasks/AllocateModal';
-import { Shuffle, Eye, CheckCircle, XCircle, X, Download } from 'lucide-react';
+import { Shuffle, Eye, CheckCircle, XCircle, X, Download, Edit, Trash2, AlertCircle } from 'lucide-react';
 
 const statusBadge = { allocated:'badge-yellow', submitted:'badge-blue', approved:'badge-green', rejected:'badge-red' };
 
@@ -62,6 +62,8 @@ export default function AdminPresentations() {
   const [showAllocate, setShowAllocate] = useState(false);
   const [reviewing, setReviewing] = useState(null);
   const [filters, setFilters] = useState({ status: 'all', department: '', year: '', search: '' });
+  const [deleting, setDeleting] = useState(null);
+  const [showDeleteAll, setShowDeleteAll] = useState(false);
 
   const fetch = async () => {
     setLoading(true);
@@ -84,6 +86,30 @@ export default function AdminPresentations() {
     toast.success(`Presentation ${status}`);
   };
 
+  const handleDelete = async (id) => {
+    setDeleting(id);
+    try {
+      await api.delete(`/tasks/presentations/${id}`);
+      setItems(a => a.filter(x => x._id !== id));
+      toast.success('Presentation deleted');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      await api.delete('/tasks/presentations');
+      setItems([]);
+      setShowDeleteAll(false);
+      toast.success('All presentations deleted');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete');
+    }
+  };
+
   const counts = { all: items.length, allocated: 0, submitted: 0, approved: 0, rejected: 0 };
   items.forEach(a => { counts[a.status] = (counts[a.status] || 0) + 1; });
 
@@ -99,7 +125,14 @@ export default function AdminPresentations() {
           <h1 className="text-2xl font-bold text-white">Presentations</h1>
           <p className="text-slate-400 mt-1">Allocate paper presentation topics department-wise</p>
         </div>
-        <button onClick={() => setShowAllocate(true)} className="btn-primary flex items-center gap-2"><Shuffle size={16}/> Allocate</button>
+        <div className="flex gap-3">
+          <button onClick={() => setShowAllocate(true)} className="btn-primary flex items-center gap-2"><Shuffle size={16}/> Allocate</button>
+          {items.length > 0 && (
+            <button onClick={() => setShowDeleteAll(true)} className="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-4 py-2 rounded-lg font-medium flex items-center gap-2">
+              <Trash2 size={16} /> Delete All
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -142,11 +175,20 @@ export default function AdminPresentations() {
                   <td><p className="text-sm text-slate-200">{a.allocatedTo?.name}</p><p className="text-xs text-slate-500">{a.allocatedTo?.studentId}</p></td>
                   <td className="text-xs text-slate-400">{a.dueDate ? new Date(a.dueDate).toLocaleDateString() : '—'}</td>
                   <td><span className={statusBadge[a.status]}>{a.status}</span></td>
-                  <td>
-                    {a.status === 'submitted' && <button onClick={() => setReviewing(a)} className="flex items-center gap-1 text-xs text-blue-400 bg-blue-400/10 px-3 py-1.5 rounded-lg"><Eye size={13}/> Review</button>}
-                    {a.status === 'approved' && <span className="text-xs text-emerald-400">✓</span>}
-                    {a.status === 'rejected' && <span className="text-xs text-red-400">✗</span>}
-                    {a.status === 'allocated' && <span className="text-xs text-slate-500">Awaiting</span>}
+                  <td className="flex items-center gap-2">
+                    {a.status === 'submitted' && <button onClick={() => setReviewing(a)} className="flex items-center gap-1 text-xs text-blue-400 bg-blue-400/10 px-2 py-1 rounded"><Eye size={12}/> Review</button>}
+                    <button 
+                      onClick={() => handleDelete(a._id)} 
+                      disabled={deleting === a._id}
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 bg-red-400/10 px-2 py-1 rounded disabled:opacity-50">
+                      <Trash2 size={12} /> Delete
+                    </button>
+                    {a.status !== 'submitted' && (
+                      <>
+                        {a.status === 'approved' && <span className="text-xs text-emerald-400">✓</span>}
+                        {a.status === 'rejected' && <span className="text-xs text-red-400">✗</span>}
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -156,6 +198,34 @@ export default function AdminPresentations() {
 
       {showAllocate && <AllocateModal type="presentation" onClose={() => setShowAllocate(false)} onSuccess={fetch} />}
       {reviewing && <ReviewModal item={reviewing} onClose={() => setReviewing(null)} onApprove={handleApprove} />}
+      
+      {showDeleteAll && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xhr w-full max-w-sm">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 bg-red-500/20 rounded-full mx-auto mb-4">
+                <AlertCircle size={24} className="text-red-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white text-center mb-2">Delete All Presentations</h3>
+              <p className="text-sm text-slate-400 text-center mb-6">
+                This will permanently delete all {items.length} presentation records. This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowDeleteAll(false)}
+                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg font-medium">
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleDeleteAll}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium">
+                  Delete All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

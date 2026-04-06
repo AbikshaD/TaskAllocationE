@@ -295,6 +295,20 @@ const getMyPresentations = async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
+const deletePresentation = async (req, res) => {
+  try {
+    await Presentation.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Presentation deleted' });
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
+const deleteAllPresentations = async (req, res) => {
+  try {
+    const result = await Presentation.deleteMany();
+    res.json({ message: `${result.deletedCount} presentations deleted` });
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Lab Tasks removed by request
 
@@ -412,6 +426,27 @@ const getMyProjects = async (req, res) => {
     if (!student) return res.status(404).json({ message: 'Student not found' });
     const projects = await Project.find({ allocatedTo: student._id });
     res.json(projects);
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
+const deleteProject = async (req, res) => {
+  try {
+    await Project.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Project deleted' });
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
+const deleteAllProjects = async (req, res) => {
+  try {
+    const result = await Project.deleteMany();
+    res.json({ message: `${result.deletedCount} projects deleted` });
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
+const deleteAllAssignments = async (req, res) => {
+  try {
+    const result = await Assignment.deleteMany();
+    res.json({ message: `${result.deletedCount} assignments deleted` });
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
 
@@ -535,8 +570,8 @@ const downloadTopicsTemplate = (req, res) => {
 };
 
 module.exports = {
-  getAssignments, createAndAllocateAssignments, submitAssignment, approveAssignment, getMyAssignments, deleteAssignment,
-  getPresentations, createAndAllocatePresentations, submitPresentation, approvePresentation, getMyPresentations,
-  getProjects, createAndAllocateProjects, approveProject, getMyProjects, chooseProject, createReviewProgress, updatePhaseStatus,
+  getAssignments, createAndAllocateAssignments, submitAssignment, approveAssignment, getMyAssignments, deleteAssignment, deleteAllAssignments,
+  getPresentations, createAndAllocatePresentations, submitPresentation, approvePresentation, getMyPresentations, deletePresentation, deleteAllPresentations,
+  getProjects, createAndAllocateProjects, approveProject, getMyProjects, chooseProject, createReviewProgress, updatePhaseStatus, deleteProject, deleteAllProjects,
   downloadTopicsTemplate,
 };
