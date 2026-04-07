@@ -9,13 +9,13 @@ connectDB();
 
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = [
+    const allowed = [
       'https://frontend-one-wheat-31.vercel.app',
       'https://frontend-dk274xuee-abikshads-projects.vercel.app',
-      'http://localhost:3000'  // for local dev
+      'http://localhost:3000',
+      'http://localhost:5173'
     ];
-    // Allow requests with no origin (Postman, mobile apps)
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
