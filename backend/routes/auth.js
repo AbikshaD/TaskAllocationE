@@ -3,8 +3,6 @@ const router = express.Router();
 const { hostLogin, adminLogin, studentLogin, setupHost, getMe } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
-router.use("/api/auth", authRoutes);
-
 router.post('/host/login', hostLogin);
 router.post('/admin/login', adminLogin);
 router.post('/student/login', studentLogin);
