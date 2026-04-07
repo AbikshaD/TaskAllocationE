@@ -8,8 +8,8 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: '*',
-  credentials: false
+  origin: "https://task-allocation-q3yshfrwo-abikshads-projects.vercel.app",
+  credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
