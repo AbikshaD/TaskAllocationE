@@ -8,20 +8,8 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: function (origin, callback) {
-    const allowed = [
-      'https://task-allocation-e.vercel.app',
-      'https://frontend-one-wheat-31.vercel.app',
-      'http://localhost:3000',
-      'http://localhost:5173'
-    ];
-    if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
+  origin: '*',
+  credentials: false
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
