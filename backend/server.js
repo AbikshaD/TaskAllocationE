@@ -8,10 +8,11 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: "https://task-allocation-q3yshfrwo-abikshads-projects.vercel.app",
-  credentials: true
+  origin: '*',
+  credentials: false
 }));
 app.options("*", cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
