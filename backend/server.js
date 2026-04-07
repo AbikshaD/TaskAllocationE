@@ -8,8 +8,20 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true,
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://frontend-one-wheat-31.vercel.app',
+      'https://frontend-dk274xuee-abikshads-projects.vercel.app',
+      'http://localhost:3000'  // for local dev
+    ];
+    // Allow requests with no origin (Postman, mobile apps)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
