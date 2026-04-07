@@ -10,8 +10,8 @@ connectDB();
 app.use(cors({
   origin: function (origin, callback) {
     const allowed = [
+      'https://task-allocation-e.vercel.app',
       'https://frontend-one-wheat-31.vercel.app',
-      'https://frontend-dk274xuee-abikshads-projects.vercel.app',
       'http://localhost:3000',
       'http://localhost:5173'
     ];
